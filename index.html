@@ -543,6 +543,8 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;color:var(--ink);ba
 @media (pointer:coarse){body.walking #joy{display:grid}}
 body.elka-open #joy{display:none!important}
 
+@media print{body>*:not(#print){display:none!important}#print{position:static!important;background:none!important;padding:0!important;overflow:visible!important}#print .pbar{display:none!important}.paper{box-shadow:none!important;margin:0 auto!important;border-radius:0!important;page-break-after:always;break-after:page}html,body{background:#fff!important;overflow:visible!important;height:auto!important}}
+.prsws{display:grid;gap:8px;margin-bottom:6px}.prsw{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}.prsw input{width:18px;height:18px;accent-color:var(--accent,#8c2f39)}
 /* print preview: paper sheets over the screen */
 #print{position:fixed;inset:0;z-index:20;background:rgba(10,10,10,.7);overflow:auto;padding:0 16px 24px;box-sizing:border-box}
 #print .pbar{position:sticky;top:0;z-index:1;display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 14px;margin:12px auto;max-width:720px;box-sizing:border-box}
@@ -733,7 +735,7 @@ body.elka-open #joy{display:none!important}
 </div>
 
 <div id="print" hidden>
-  <div class="pbar glass"><b id="prTitle"></b><span class="sub" style="margin:0">Preview only. This sample page is not connected to a printer.</span><span style="flex:1"></span><button class="primary" id="prClose">Close</button></div>
+  <div class="pbar glass"><b id="prTitle"></b><span class="sub" id="prDevTxt" style="margin:0"></span><span style="flex:1"></span><button id="prClose">Close</button><button class="primary" id="prGo">Print</button></div>
   <div id="prBody"></div>
 </div>
 
@@ -1718,6 +1720,8 @@ shelfUnits.forEach(u=>{const post=new THREE.BoxGeometry(0.14,SH_POST,0.14);const
   sb(2.2,0.5,3.2,matCard,15.2,3.25,33.6); sb(1.3,1.0,1.1,matCard,16.5,3.5,28.6); sb(1.3,1.0,1.1,matCard,15.0,3.5,27.0); sb(1.2,0.25,1.2,matSteel,11.4,3.12,25.6);
   sb(1.6,1.1,1.3,matCard,14.8,1.5,26.4); sb(1.6,1.1,1.3,matCard,16.6,1.5,31.5); sb(1.6,1.1,1.3,matCard,14.9,1.5,34.6);
   const roll=new THREE.Mesh(new THREE.CylinderGeometry(0.55,0.55,2.6,14),matWhite);roll.rotation.x=Math.PI/2;roll.position.set(SX+17.1,3.55,SZ+34.2);roll.castShadow=true;scene.add(roll);
+  sb(1.5,0.72,1.3,matDark,15.0,3.35,30.9); sb(1.1,0.05,0.95,matWhite,15.0,3.74,30.9); sb(0.55,0.02,0.75,matWhite,15.95,3.2,30.9); sb(0.12,0.04,0.12,M(0x3fbf6a,{emissive:0x1f7a3a}),14.55,3.73,31.4);   // the printer
+
   sb(2.2,0.03,3.3,M(0x6b1d2f,{roughness:1}),1.5,0.02,24.75,false);                                                              // entrance mat
 })();
 
@@ -1746,7 +1750,7 @@ function makeLabels(){labels.forEach(s=>scene.remove(s));labels.length=0;flyName
   UNITS.forEach(u=>{const xc=SX+u.x+SHELF.depth/2,fx=u.face>0?SX+u.x+SHELF.depth+0.12:SX+u.x-0.12;
     L(u.name,xc+u.face*1.7,SHELF.top+1.9,SZ+u.z0+u.bays*u.bay/2,0.8,{bg:u.ship?'#8a6a30':'#1f6b4a',fg:'#fff'});
     for(let b=0;b<u.bays;b++) L(u.k+(b+1),fx,SHELF.top-0.32,SZ+u.z0+(b+0.5)*u.bay,0.34,{bg:'#e0661e',fg:'#fff'});});
-  L('Bathroom',SX+26,10.3,SZ+2.95,1.2); L('Office',SX+6.2,10.3,SZ+34,1.4); L('Agents desk',SX+4.7,5.7,SZ+36.5,0.9,{bg:'#6b1d2f',fg:'#fff'}); L('Packaging table',SX+15.85,5.6,SZ+30.5,1.05); L('Door',SX-0.4,8.4,SZ+(SDOOR.z0+SDOOR.z1)/2,1.2); 
+  L('Bathroom',SX+26,10.3,SZ+2.95,1.2); L('Office',SX+6.2,10.3,SZ+34,1.4); L('Agents desk',SX+4.7,5.7,SZ+36.5,0.9,{bg:'#6b1d2f',fg:'#fff'}); L('Packaging table',SX+15.85,5.6,SZ+30.5,1.05); L('Printer',SX+15.0,4.05,SZ+30.9,0.62,{bg:'#2b2f33',fg:'#fff'}); L('Door',SX-0.4,8.4,SZ+(SDOOR.z0+SDOOR.z1)/2,1.2); 
   labelMode();
 }
 function labelMode(){flyNames.forEach(s=>s.visible=!walk);walkNames.forEach(s=>s.visible=!!walk);
@@ -1770,9 +1774,12 @@ locs.forEach(l=>{
 // the office desk is a hot spot too: a click on it opens the agents
 const DESK={id:'Agents desk',desk:true,kind:'desk',x:SX+4.2,y:0,z:SZ+36.55,w:5.4,d:5.9,hitH:4.3,items:[]};
 (function(){const m=new THREE.Mesh(new THREE.BoxGeometry(DESK.w,DESK.hitH,DESK.d),hitMat);m.position.set(DESK.x,DESK.hitH/2,DESK.z);m.userData.loc=DESK;DESK.hit=m;scene.add(m);hits.push(m);})();
+// the printer on the packing table is a hot spot: a click opens it
+const PRINTER={id:'Printer',printer:true,kind:'printer',x:SX+15.0,y:2.95,z:SZ+30.9,w:1.8,d:1.6,hitH:1.1,items:[]};
+(function(){const m=new THREE.Mesh(new THREE.BoxGeometry(PRINTER.w,PRINTER.hitH,PRINTER.d),hitMat);m.position.set(PRINTER.x,PRINTER.y+PRINTER.hitH/2,PRINTER.z);m.userData.loc=PRINTER;PRINTER.hit=m;scene.add(m);hits.push(m);})();
 // sections: a whole rack bay, shelf section, vintage shelf or middle-row spot. Hover outlines it; a click on it (or its side) zooms in to it.
 const SECS={},secHits=[];
-function secKey(l){if(!l||l.desk)return null;if(l.group==='shop')return l.unit.k+(l.bay+1);if(l.kind==='pallet')return l.id.split('-')[0];if(l.kind==='shelf')return l.id.split('-')[0];return null;}
+function secKey(l){if(!l||l.desk||l.printer)return null;if(l.group==='shop')return l.unit.k+(l.bay+1);if(l.kind==='pallet')return l.id.split('-')[0];if(l.kind==='shelf')return l.id.split('-')[0];return null;}
 locs.forEach(l=>{const k=secKey(l);if(!k)return;const S=SECS[k]||(SECS[k]={k,locs:[],x0:1e9,x1:-1e9,y0:1e9,y1:-1e9,z0:1e9,z1:-1e9});S.locs.push(l);l.sec=S;
   const h=l.hitH||l.h||1.4;S.x0=Math.min(S.x0,l.x-l.w/2);S.x1=Math.max(S.x1,l.x+l.w/2);S.z0=Math.min(S.z0,l.z-l.d/2);S.z1=Math.max(S.z1,l.z+l.d/2);S.y0=Math.min(S.y0,l.y);S.y1=Math.max(S.y1,l.y+h);});
 Object.values(SECS).forEach(S=>{const l=S.locs[0];S.face=l.face||(l.group==='left'?1:l.group==='right'?-1:0);
@@ -1881,8 +1888,12 @@ function changed(){reindex();syncRoute();repaint();if(sel){fitBox(selBox,sel);fi
 // outlines for hover / selection
 function outline(color){const g=new THREE.EdgesGeometry(new THREE.BoxGeometry(1,1,1));const m=new THREE.LineSegments(g,new THREE.LineBasicMaterial({color,depthTest:false,transparent:true}));m.renderOrder=10;m.visible=false;scene.add(m);return m;}
 const hoverBox=outline(0xc9a15a), selBox=outline(0xa8303f);
-const secBox=outline(0x8c7b6c);secBox.material.opacity=.75;
-function fitSec(S){secBox.position.set((S.x0+S.x1)/2,(S.y0+S.y1)/2,(S.z0+S.z1)/2);secBox.scale.set(S.x1-S.x0+0.5,S.y1-S.y0+0.4,S.z1-S.z0+0.5);secBox.visible=true;}
+const secBox=outline(0x2b1d17),secBox2=outline(0x2b1d17),secBox3=outline(0xffffff);secBox3.material.opacity=.9;
+const secFill=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshBasicMaterial({color:0x2b1d17,transparent:true,opacity:.06,depthWrite:false}));secFill.visible=false;scene.add(secFill);
+const secParts=[secBox,secBox2,secBox3,secFill];
+function secShow(v){secParts.forEach(o=>o.visible=v);}
+function fitSec(S){const c=[(S.x0+S.x1)/2,(S.y0+S.y1)/2,(S.z0+S.z1)/2],w=S.x1-S.x0,h=S.y1-S.y0,d=S.z1-S.z0;
+  [[secBox,0.5],[secBox2,0.62],[secBox3,0.38],[secFill,0.5]].forEach(([o,k])=>{o.position.set(...c);o.scale.set(w+k,h+k*0.8,d+k);});secShow(true);}
 const selFill=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshBasicMaterial({color:0xa8303f,transparent:true,opacity:.14,depthWrite:false}));selFill.visible=false;scene.add(selFill);
 function fitBox(o,l){const h=Math.max(l.hitH,stackH(l));o.position.set(l.x,l.y+h/2,l.z);o.scale.set(l.w+0.25,h+0.15,l.d+0.25);o.visible=true;}
 function stackH(l){if(!isCases(l))return l.hitH;const n=used(l)+(l.kind==='recv'?npCases():0);if(!n)return l.pallet?0.6:0.4;return (l.pallet?0.42:0.06)+Math.ceil(n/(l.cols*l.rows))*CASE.h;}
@@ -1976,7 +1987,7 @@ function rayLoc(maxD){const hit=ray.intersectObjects(moveCtx?hits.filter(h=>h.us
 function raySec(){if(moveCtx)return null;const hit=ray.intersectObjects(secHits,false)[0];if(!hit)return null;
   if(wallsFull){const w=ray.intersectObjects(walls,false).concat(ray.intersectObjects(doors,true)).sort((a,b)=>a.distance-b.distance)[0];if(w&&w.distance<hit.distance)return null;}
   return hit.object.userData.sec;}
-function tipHtml(l){if(l.desk)return '<b>Agents desk</b> · click to open your agents';let h=`<b>${l.id}</b> · ${summary(l)}`;
+function tipHtml(l){if(l.desk)return '<b>Agents desk</b> · click to open your agents';if(l.printer)return '<b>Printer</b> · click to print order sheets, labels and lists';let h=`<b>${l.id}</b> · ${summary(l)}`;
   if(l.kind==='shop')h+=`<br>${esc(l.unit.name)} · section ${l.bay+1}`;
   else if(l.kind==='ship'){if(l.items[0])h+=`<br>Order ${l.items[0].no}${l.items.length>1?` + ${l.items.length-1} more`:''}`;}
   else if(l.items.length){const top=isCases(l)?[...l.items].sort((a,b)=>b.c-a.c)[0]:l.items[0];h+=`<br>${esc(WINES[top.w].n)}${l.items.length>1?` + ${l.items.length-1} more`:''}`;}
@@ -1984,18 +1995,18 @@ function tipHtml(l){if(l.desk)return '<b>Agents desk</b> · click to open your a
 renderer.domElement.addEventListener('pointermove',e=>{
   if(walk&&lookId===e.pointerId&&lookPrev){walk.yaw-=(e.clientX-lookPrev.x)*0.005;walk.pitch=Math.max(-1.2,Math.min(1.2,walk.pitch-(e.clientY-lookPrev.y)*0.005));lookPrev={x:e.clientX,y:e.clientY};}
   if(e.pointerType==='touch')return;lastMouse=performance.now();if(walk&&e.buttons)return;const l=pick(e);hover=l;const tip=$('tip');
-  const S=moveCtx||walk?null:(l?l.sec:raySec());if(S)fitSec(S);else secBox.visible=false;
+  const S=moveCtx||walk?null:(l?l.sec:raySec());if(S)fitSec(S);else secShow(false);
   const place=()=>{tip.hidden=false;tip.style.left=Math.min(innerWidth-270,e.clientX+14)+'px';tip.style.top=(e.clientY+14)+'px';};
   if(l){fitBox(hoverBox,l);hoverBox.material.color.set(moveCtx?0x2f9a5f:0xc9a15a);renderer.domElement.style.cursor='pointer';
     tip.innerHTML=tipHtml(l);place();}
   else if(S){hoverBox.visible=false;renderer.domElement.style.cursor='pointer';tip.innerHTML=`<b>${esc(S.name)}</b><br>Click to zoom in`;place();}
   else{hoverBox.visible=false;tip.hidden=true;renderer.domElement.style.cursor='';}});
-renderer.domElement.addEventListener('pointerleave',()=>{hoverBox.visible=false;secBox.visible=false;$('tip').hidden=true;});
+renderer.domElement.addEventListener('pointerleave',()=>{hoverBox.visible=false;secShow(false);$('tip').hidden=true;});
 renderer.domElement.addEventListener('pointerdown',e=>{down={x:e.clientX,y:e.clientY};
   if(walk){lookId=e.pointerId;lookPrev={x:e.clientX,y:e.clientY};try{renderer.domElement.setPointerCapture(e.pointerId);}catch(_){}}});
 ['pointerup','pointercancel'].forEach(t=>renderer.domElement.addEventListener(t,e=>{if(lookId===e.pointerId){lookId=null;lookPrev=null;}}));
 renderer.domElement.addEventListener('pointerup',e=>{if(!down||Math.hypot(e.clientX-down.x,e.clientY-down.y)>6){down=null;return;}down=null;
-  const l=pick(e);if(moveCtx){if(l)finishMove(l);return;} if(l&&l.desk){openDesk();return;}
+  const l=pick(e);if(moveCtx){if(l)finishMove(l);return;} if(l&&l.desk){openDesk();return;}if(l&&l.printer){openPrinter();return;}
   const S=l?l.sec:raySec();if(S&&!walk)zoomSec(S); select(l||null);});
 
 /* ---------- Detail panel ---------- */
@@ -2190,10 +2201,10 @@ function centerPick(now){const pr=$('prompt');
   mouse.set(0,0);ray.setFromCamera(mouse,camera);
   const l=rayLoc(40);centerLoc=l;$('tip').hidden=true;
   if(l){fitBox(hoverBox,l);hoverBox.material.color.set(moveCtx?0x2f9a5f:0xc9a15a);
-    pr.innerHTML=l.desk?`${coarse?'':'<kbd>E</kbd> '}Open the <b>Agents desk</b>`:`${coarse?'':'<kbd>E</kbd> '}${moveCtx?'Drop here':'Open'} <b>${l.id}</b> · ${summary(l)}`;pr.hidden=false;}
+    pr.innerHTML=l.printer?`${coarse?'':'<kbd>E</kbd> '}Open the <b>Printer</b>`:l.desk?`${coarse?'':'<kbd>E</kbd> '}Open the <b>Agents desk</b>`:`${coarse?'':'<kbd>E</kbd> '}${moveCtx?'Drop here':'Open'} <b>${l.id}</b> · ${summary(l)}`;pr.hidden=false;}
   else{hoverBox.visible=false;pr.hidden=true;}
 }
-function interact(){const l=centerLoc;if(!l)return;if(l.desk){openDesk();return;}if(moveCtx)finishMove(l);else select(l);}
+function interact(){const l=centerLoc;if(!l)return;if(l.desk){openDesk();return;}if(l.printer){openPrinter();return;}if(moveCtx)finishMove(l);else select(l);}
 $('prompt').onclick=()=>{$('prompt').blur();interact();};
 // touch stick
 const joyEl=$('joy'),knob=$('knob');let joyId=null;
@@ -2417,7 +2428,7 @@ const stopLine=s=>(s.fetch?`${s.q} × ${nm(s.w)}, but ${s.has?`the shelf only ha
 function routeChips(o){
   if(!curStop())return[{label:'Mark packed',primary:true,run:b=>{b.disabled=true;if(orderByNo(o.no))afterPack(o,packOrder(o));}},{label:'Print labels',run:()=>openPrint('labels',[o])}];
   return[{label:'Scanned, next',primary:true,run:b=>{b.disabled=true;stepRoute(1);}},{label:'Show the shelf',run:()=>{const s=curStop();if(s)showStop(s);}},{label:'Print order sheet',run:()=>openPrint('sheet',[o])}];}
-function routeReply(o,only){orderFocus=o.no;tagEdit=null;route=buildRoute(o,only);showOrders(false);routeShow();
+function routeReply(o,only){orderFocus=o.no;tagEdit=null;prAutoPick(o);route=buildRoute(o,only);showOrders(false);routeShow();
   const st=route.stops,todo=st.filter(s=>!s.done),c=curStop(),whn=only?` in the ${WHN[only]}`:'';
   const oth2=route.others,othTxt=oth2.length?` Not${whn}: ${oth2.slice(0,3).map(stopLine).join('; ')}${oth2.length>3?`; and ${oth2.length-3} more`:''}.`:'';
   if(!st.length){route=null;repaint();return{text:only&&oth2.length?`Order ${o.no} has nothing to pick${whn}.${othTxt}`:`I cannot find stock for order ${o.no}.`};}
@@ -2600,7 +2611,7 @@ function packOrder(o){const before=snap(),short=[],fetched=[];let fromBig=0;
     if(left>0){const r=takeBig(it.w,left);left-=r.took;fromBig+=r.took;}
     if(left>0)short.push({w:it.w,n:left});});
   const shelf=locs.find(l=>l.kind==='ship'&&!l.items.length)||locs.find(l=>l.kind==='ship'&&l.items.length<3);
-  state.orders=state.orders.filter(x=>x!==o);o.packedAt=clock();o.tags=(o.tags||[]).filter(t=>!/^packed at/i.test(t)).concat('Packed at '+o.packedAt);delete o.picked;
+  state.orders=state.orders.filter(x=>x!==o);o.packedAt=clock();if(typeof prAutoPacked==='function'&&!quietChange)setTimeout(()=>prAutoPacked(o),0);o.tags=(o.tags||[]).filter(t=>!/^packed at/i.test(t)).concat('Packed at '+o.packedAt);delete o.picked;
   if(shelf)shelf.items.push(o);
   if(route&&route.nos.includes(o.no)){route.nos=route.nos.filter(x=>x!==o.no);if(!route.nos.length){route=null;clearBeacon();}}
   if(orderFocus===o.no)orderFocus=null;
@@ -2662,13 +2673,70 @@ function sheetHtml(kind,o){const day=new Date().toLocaleDateString('en-US',{mont
     <div class="psum">${kind==='sheet'?`${plural(n,'bottle')} · ${o.boxes} ${o.boxes>1?'boxes':'box'} to pack`:`${plural(n,'bottle')} · $${fmt(tot)}`}</div>
     <div class="pfoot">${kind==='sheet'?'Packed by ____________ &nbsp; Checked by ____________':'Thank you for your order.'} · Sample document</div></div>`;}
 const KINDN={sheet:'Order sheet',slip:'Packing slip',labels:'Box labels',all:'Order sheet, packing slip and labels'};
-function openPrint(kind,list){list=list.filter(Boolean);if(!list.length)return false;
+function openPrint(kind,list,auto){list=list.filter(Boolean);if(!list.length)return false;
   const kinds=kind==='all'?['sheet','slip','labels']:[kind];
-  $('prBody').innerHTML=list.map(o=>kinds.filter(k=>k==='labels'||(o.items&&o.items.length)).map(k=>sheetHtml(k,o)).join('')).join('');
-  $('prTitle').textContent=`${KINDN[kind]} · ${list.length===1?list[0].no:plural(list.length,'order')}`;
-  $('print').hidden=false;document.body.classList.add('printing');$('print').scrollTop=0;return true;}
+  const html=list.map(o=>kinds.filter(k=>k==='labels'||(o.items&&o.items.length)).map(k=>sheetHtml(k,o)).join('')).join('');
+  return prOpen(`${KINDN[kind]} · ${list.length===1?list[0].no:plural(list.length,'order')}`,html,kind==='all'?'Office printer and the Label printer':prFor(kind),auto);}
 function closePrint(){$('print').hidden=true;document.body.classList.remove('printing');}
 $('prClose').onclick=closePrint;
+// ---------- The printer at the packing table. In this preview every job goes through this computer's print dialog, which lists all its printers; later the Elka app on the warehouse PC sends jobs straight to the named printer. ----------
+const PR_KEY='elk-ops-printer';
+const PRINTERS=[{id:'label',n:'Label printer',what:'4x6 box labels'},{id:'office',n:'Office printer',what:'Letter paper: order sheets, packing slips and lists'}];
+const PR=(()=>{const d={auto:{labels:false,slip:false,sheet:false},jobs:[]};try{const x=JSON.parse(localStorage.getItem(PR_KEY)||'{}');return{auto:Object.assign(d.auto,x.auto||{}),jobs:Array.isArray(x.jobs)?x.jobs:[]};}catch(e){return d;}})();
+const prSave=()=>{try{localStorage.setItem(PR_KEY,JSON.stringify(PR));}catch(e){}};
+let prJob=null;
+const prFor=kind=>kind==='labels'?'Label printer':'Office printer';
+function prOpen(title,html,printer,auto){$('prBody').innerHTML=html;$('prTitle').textContent=title;prJob={title,printer};
+  $('prDevTxt').textContent=`For the ${printer}. Pick it in the print dialog, which lists every printer on this computer.`;
+  $('print').hidden=false;document.body.classList.add('printing');$('print').scrollTop=0;if(auto)setTimeout(prGo,400);return true;}
+function prGo(){if(!prJob)return;PR.jobs.unshift({t:clock(),title:prJob.title,printer:prJob.printer});PR.jobs=PR.jobs.slice(0,12);prSave();
+  if(agentKind==='printer'&&!$('agent').hidden)renderAgent();try{window.print();}catch(e){toast('This browser could not open the print dialog.');}}
+$('prGo').onclick=prGo;
+$('aBody').addEventListener('change',e=>{const k=e.target&&e.target.dataset&&e.target.dataset.prauto;if(!k)return;PR.auto[k]=e.target.checked;prSave();toast(e.target.checked?'Prints by itself from now on':'Turned off');});
+const prDay=()=>new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+function listPaper(kind,meta,head,rows,sum){return `<div class="paper"><div class="phd"><div><div class="brand">ELK</div><div class="kind">${esc(kind)}</div></div><div class="pmeta"><b>${esc(meta)}</b><div>${prDay()}</div></div></div>
+  <table><thead><tr>${head.map((h,i)=>`<th${i&&/\$|Bottles|Cases/.test(h)?' class="r"':''}>${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')||`<tr><td colspan="${head.length}">Nothing on this list right now.</td></tr>`}</tbody></table>${sum?`<div class="psum">${sum}</div>`:''}<div class="pfoot">Sample document</div></div>`;}
+function restockDoc(){const all=needs(),ST={out:'Out',low:'Low',missing:'Not on shelf'};
+  const rows=all.map(w=>{const d=IDX[w.i],shop=d.status==='missing'?`${ZONES[w.z]} section, no row yet`:`${d.lanes[0].l.id}, row ${d.lanes[0].k+1}`,from=d.underB?`Box under ${d.under[0].l.id}`:d.bigC?d.big[0].l.id:'Reorder';
+    return `<tr><td>${esc(w.n)}</td><td>${ST[d.status]||''}</td><td>${esc(shop)}</td><td>${esc(from)}</td><td><i class="tick"></i></td></tr>`;});
+  return listPaper('Restock list','Small warehouse',['Wine','Status','Shop shelf','Take from','Done'],rows,plural(all.length,'wine')+' to top up');}
+function cashDoc(){const cs=state.cash||[],tot=cs.reduce((a,c)=>a+c.b*WINES[c.w].p,0);
+  return listPaper('Cash sales to enter in Shopify',plural(cs.length,'sale'),['Bottles','Wine','$ Each','$ Total'],cs.map(c=>`<tr><td class="q">${c.b}</td><td>${esc(nm(c.w))}</td><td class="r">$${WINES[c.w].p}</td><td class="r">$${fmt(c.b*WINES[c.w].p)}</td></tr>`),cs.length?'$'+fmt(tot):'');}
+function testDoc(pid){const P=PRINTERS.find(x=>x.id===pid)||PRINTERS[1];return pid==='label'
+  ?`<div class="paper lbl"><div class="lh"><b>ELK</b><span>Test label</span></div><div class="lto"><span>Printer</span><b>${P.n}</b><div>${P.what}</div></div>${barcode('TEST')}<div class="lcode">ELK-TEST · ${clock()}</div></div>`
+  :listPaper('Test page',P.n,['Check','Result'],['Text is sharp','Lines are straight','Nothing is cut off at the edges'].map(x=>`<tr><td>${x}</td><td><i class="tick"></i></td></tr>`),'');}
+function printDoc(doc,auto){
+  if(doc==='restock')return prOpen('Restock list',restockDoc(),'Office printer',auto);
+  if(doc==='cash')return prOpen('Cash sales to enter in Shopify',cashDoc(),'Office printer',auto);
+  if(doc==='test-label'||doc==='test-office'){const id=doc.slice(5);return prOpen('Test page · '+(PRINTERS.find(x=>x.id===id)||{}).n,testDoc(id),(PRINTERS.find(x=>x.id===id)||{}).n,auto);}
+  if(doc==='sheets')return openPrint('sheet',orderQueue(),auto);
+  if(doc==='ready')return openPrint('labels',readyOrders().map(x=>x.o),auto);
+  if(doc==='next'){const o=nextOrder();return o?openPrint('all',[o],auto):false;}
+  return false;}
+// automatic printing: after an order is marked packed (labels, packing slip) or when picking starts (order sheet)
+let prPend=[],prTimer=0;
+function prAutoPacked(o){if(!PR.auto.labels&&!PR.auto.slip)return;prPend.push(o);clearTimeout(prTimer);prTimer=setTimeout(()=>{const os=prPend;prPend=[];
+  const k=PR.auto.labels&&PR.auto.slip?'both':PR.auto.labels?'labels':'slip';
+  if(k==='both'){const html=os.map(o=>sheetHtml('slip',o)+sheetHtml('labels',o)).join('');prOpen(`Packing slip and labels · ${os.length===1?os[0].no:plural(os.length,'order')}`,html,'Office printer and the Label printer',true);}
+  else openPrint(k,os,true);toast('Printing automatically: '+(k==='both'?'packing slip and labels':KINDN[k].toLowerCase()));},120);}
+const prSheetDone=new Set();
+function prAutoPick(o){if(!PR.auto.sheet||!o||prSheetDone.has(o.no))return;prSheetDone.add(o.no);setTimeout(()=>{openPrint('sheet',[o],true);toast('Printing the order sheet automatically');},300);}
+function printerHtml(){const sw=(k,t)=>`<label class="prsw"><input type="checkbox" data-prauto="${k}"${PR.auto[k]?' checked':''}> ${t}</label>`;
+  const nx=nextOrder(),ready=readyOrders().length,q=orderQueue().length;
+  return `<div class="note">This printer sits on the packing table. Tap a button or ask Elka, for example “print the labels for 9834” or “print the restock list”. In this preview each print opens this computer's print dialog, which lists every printer on the computer. Later, the Elka app on the warehouse PC will send jobs straight to the right printer with no dialog.</div>
+  <div class="sec">Printers</div>${PRINTERS.map(P=>`<div class="rs card"><div class="top"><div style="min-width:0;flex:1"><div class="nm">${P.n}</div><div class="meta">${P.what}</div></div><span class="pill ok">Ready</span></div><div class="acts"><button class="sm" data-prdoc="test-${P.id}">Print a test page</button></div></div>`).join('')}
+  <div class="sec">Print now</div><div class="acts" style="flex-wrap:wrap">
+  ${nx?`<button class="sm primary" data-prdoc="next">Next order ${esc(nx.no)}: sheet, slip and labels</button>`:''}
+  <button class="sm" data-prdoc="sheets"${q?'':' disabled'}>Order sheets for all ${q} to pack</button>
+  <button class="sm" data-prdoc="ready"${ready?'':' disabled'}>Labels for the ${ready} packed</button>
+  <button class="sm" data-prdoc="restock">Restock list</button>
+  <button class="sm" data-prdoc="cash">Cash sales to enter</button></div>
+  <div class="sec">Print automatically</div><div class="prsws">${sw('labels','Box labels when an order is marked packed')}${sw('slip','Packing slip when an order is marked packed')}${sw('sheet','Order sheet when picking starts')}</div>
+  <div class="sec">Recent prints</div>${PR.jobs.length?`<div class="rs">${PR.jobs.map(j=>`<div class="mrow"><span>${esc(j.title)} <span class="meta">· ${esc(j.printer)}</span></span><b>${esc(j.t)}</b></div>`).join('')}</div>`:'<div class="empty">Nothing printed yet.</div>'}
+  <div class="acts"><button class="sm ghost" data-prcam="1">Show the printer in 3D</button></div>`+SAMPLE;}
+function printerCam(){if(walk||route)return;const k=phone()?1.6:1,t=[SX+15.2,3,SZ+31],p=[SX+27,12,SZ+38];clearBeacon();fly(p.map((x,i)=>t[i]+(x-t[i])*k),t,700);viewBtns().forEach(b=>b.classList.remove('on'));}
+function openPrinter(){openAgent('printer');printerCam();}
+
 
 /* ---------- One screen. The Warehouse section is the 3D map; the Ops section opens beside it with the same tabs as the rest of Elk Ops. ---------- */
 var RIGHT=['panel','drawer','orders','feed','agent'], OPSP=['feed','orders','drawer','agent'];
@@ -2683,8 +2751,8 @@ function setFull(on){opsFull=!!on;syncFull();layoutElka();}
 function mapWanted(){turnMap=true;if(!camQuiet&&opsFull&&opsOpen())setFull(false);}
 const wantFull=f=>f!=null?!!f:(elkaTurn?!turnMap:true);
 const TABS=[['today','Today'],['orders','Orders'],['pickup','Pickup'],['deliver','Delivery'],['driver','Driver'],['owner','Owner'],['recv','Receiving'],['restock','Restock'],['agents','Agents']];
-const AGT={pickup:'Driver pickup',deliver:'Delivery',driver:'Routes and drivers',owner:'Owner',recv:'Receiving',team:'Agents desk',product:'Product upload agent',email:'Email agent'};
-const AGTAB={pickup:'pickup',deliver:'deliver',driver:'driver',owner:'owner',recv:'recv',team:'agents',product:'agents',email:'agents'};
+const AGT={pickup:'Driver pickup',deliver:'Delivery',driver:'Routes and drivers',owner:'Owner',recv:'Receiving',team:'Agents desk',product:'Product upload agent',email:'Email agent',printer:'Printer'};
+const AGTAB={pickup:'pickup',deliver:'deliver',driver:'driver',owner:'owner',recv:'recv',team:'agents',product:'agents',email:'agents',printer:'agents'};
 const TABN={today:'Today',orders:'Orders',pickup:'Pickup',deliver:'Delivery',driver:'Routes and drivers',owner:'Owner',recv:'Receiving',restock:'Restock',agents:'Agents'};
 function opsOpen(){return OPSP.map($).find(e=>!e.hidden)||null;}
 function hideRight(except){RIGHT.forEach(id=>{if(id!==except)$(id).hidden=true;});}
@@ -3450,6 +3518,7 @@ function ownerHtml(){const S=STATS,all=S.nPack+S.nReady+S.nVan,cs=state.cash||[]
 const AGENTS=[
  {k:'elka',n:'Elka',re:/\belka\b/,what:'Voice and text for the whole warehouse. Finds bottles, walks you through orders, keeps the counts, and can use every agent on this desk.',now:()=>'listening on this screen'},
  {k:'packing',n:'Packing check',re:/\bpack(ing|er|ers)?\b|\bscan check\b/,tab:'orders',what:'Says what to pack next, shows the pick route and checks every bottle is scanned.',now:()=>`${plural(STATS.nPack,'order')} to pack`,say:'What do I pack next?',ask:'Ask Elka what to pack next'},
+ {k:'printer',n:'Printer',re:/\bprinters?\b/,agent:'printer',what:'Sits on the packing table. Prints order sheets, packing slips, box labels and lists when you ask, or by itself when an order is packed.',now:()=>{const n=['labels','slip','sheet'].filter(k=>PR.auto[k]).length;return n?`prints by itself for ${plural(n,'kind')} of paper`:'ready, prints when asked';},say:'Print the restock list',ask:'Ask Elka to print'},
  {k:'route',n:'Route planner',re:/\broutes?\b|\bdrivers?\b|\bvan\b|\bdeliver/,tab:'pickup',tab2:[['Open Delivery','deliver'],['Open routes and drivers','driver']],what:'Plans the routes and the drivers, finds the fastest order, shows the driver where the boxes are and tracks each stop.',now:()=>`route ${VAN.route} leaves at ${VAN.leaves}, ${plural(vanAll(),'order')}`,say:'What goes on the van?',ask:'Ask Elka what goes on the van'},
  {k:'recv',n:'Receiving agent',re:/\breceiv/,tab:'recv',what:'Reads the order sheet, puts the delivery in the receiving area, asks about wines Shopify does not have, lines up the Shopify quantities and tracks where it is put away.',
   now:()=>(state.po&&state.po.done?(STATS.recv?`${plural(STATS.recv,'case')} waiting to be sorted`:'receiving is clear'):`PO ${PO.no} from ${PO.from} expected`)+(newAsk().length?`, ${plural(newAsk().length,'new wine')} waiting for a yes or no`:'')+(shqAsk().length?`, ${plural(shqAsk().length,'wine')} ready to update in Shopify`:''),say:'What is in receiving?',ask:'Ask Elka what is in Receiving'},
@@ -3568,21 +3637,23 @@ async function writeDesc(){const n=String(pd.n).trim();if(!n){toast('Type the pr
 $('pdFile').addEventListener('change',()=>{const f=$('pdFile').files[0];$('pdFile').value='';if(!f)return;try{if(pd.img)URL.revokeObjectURL(pd.img);pd.img=URL.createObjectURL(f);}catch(e){}renderAgent();toast('Photo added to the draft. It stays on this device.');});
 
 // --- the agent panel (Pickup, Delivery, Owner, Receiving, Agents) and the buttons shared by every Ops panel ---
-function agentSub(k){const S=STATS;return k==='driver'?rmSub():k==='pickup'?`${plural(pickupBoxes(),'box')} to load · van leaves ${VAN.leaves}`:k==='deliver'?`${plural((state.van||[]).filter(o=>!o.delivered).length,'stop')} left · ${(state.van||[]).filter(o=>o.delivered).length} delivered`:k==='owner'?'Money, orders and time · sample day'
+function agentSub(k){const S=STATS;if(k==='printer')return 'Packing table · Label printer and Office printer';return k==='driver'?rmSub():k==='pickup'?`${plural(pickupBoxes(),'box')} to load · van leaves ${VAN.leaves}`:k==='deliver'?`${plural((state.van||[]).filter(o=>!o.delivered).length,'stop')} left · ${(state.van||[]).filter(o=>o.delivered).length} delivered`:k==='owner'?'Money, orders and time · sample day'
   :k==='recv'?(S.recv?`${plural(S.recv,'case')} waiting to be sorted`:state.po&&state.po.done?'Nothing waiting to be sorted':`PO ${PO.no} from ${PO.from} expected today`)+(newAsk().length?` · ${plural(newAsk().length,'new wine')} to decide`:''):k==='product'?'Preview · nothing is sent to Shopify':k==='email'?(emBusy?'Writing…':emSubject()?'One email on the desk · nothing sent':'Writes the email and its code · nothing sent'):'Your agents, reached from the office desk';}
 // the office desk in the small warehouse: the place where the owner reaches every agent
 function deskCam(){if(walk||route)return;const k=phone()?1.6:1,t=[SX+5.2,2,SZ+35.8],p=wallsFull?[SX+14,18,SZ+20.5]:[SX+15.5,13,SZ+49];clearBeacon();fly(p.map((x,i)=>t[i]+(x-t[i])*k),t,700);viewBtns().forEach(b=>b.classList.remove('on'));}
 function openDesk(){openAgent('team');deskCam();}
 function openAgent(kind,full){const f=wantFull(full);agentKind=AGT[kind]?kind:'team';hideRight('agent');opsBack=null;dropSel();renderAgent();$('agent').hidden=false;$('aBody').scrollTop=0;setFull(f);syncNav();}
-function renderAgent(){const k=agentKind,keep={};$('aTitle').textContent=AGT[k];$('aSub').textContent=agentSub(k);$('aBack').hidden=!(k==='product'||k==='email');
+function renderAgent(){const k=agentKind,keep={};$('aTitle').textContent=AGT[k];$('aSub').textContent=agentSub(k);$('aBack').hidden=!(k==='product'||k==='email'||k==='printer');
   $('aBody').querySelectorAll('input[id],select[id],textarea[id]').forEach(e=>keep[e.id]=e.value);
-  $('aBody').innerHTML=({pickup:pickupHtml,deliver:deliverHtml,owner:ownerHtml,recv:()=>recvHtml(false),team:teamHtml,product:productHtml,email:emailHtml,driver:rmHtml})[k]();
+  $('aBody').innerHTML=({pickup:pickupHtml,deliver:deliverHtml,owner:ownerHtml,recv:()=>recvHtml(false),team:teamHtml,product:productHtml,email:emailHtml,driver:rmHtml,printer:printerHtml})[k]();
   Object.keys(keep).forEach(id=>{const e=$(id);if(e&&[...(e.options||[{value:keep[id]}])].some(o=>o.value===keep[id]))e.value=keep[id];});
   if(k==='email')emMount();if(k==='driver')drvAfter();}
 const tell=(r,chips)=>{if(elkaOpen)say(r.text,r.ok?(chips||[chipUndo()]):[]);else toast(r.toast||r.text);};
 function opsAction(b){const D=b.dataset;
   if(D.go){openOps(D.go);tabCam(D.go);return true;}
   if(D.agent){openAgent(D.agent);return true;}
+  if(D.prdoc){if(!printDoc(D.prdoc))toast('Nothing to print for that right now.');return true;}
+  if(D.prcam){if(walk)toast('The printer is on the packing table in the small warehouse');else{setFull(false);printerCam();if(phone())closeOps();}return true;}
   if(D.dv){drvAct(D.dv,D.n||'');return true;}
   if(D.rm!=null){rmAct(D.rm,D.id||'',b);return true;}
   if(D.say){if(!elkaOpen)openElka(true);elkaSend(D.say);return true;}
@@ -3765,11 +3836,12 @@ function orderReply(f){const o=f.o;
 const packedText=(o,r)=>`Order ${o.no} is marked packed at ${o.packedAt}${r.shelf?`, and its ${o.boxes>1?'boxes are':'box is'} on ready-to-ship shelf ${r.shelf.id}`:''}. The stock is updated.`
   +((r.fetched||[]).length?` I counted a case of ${r.fetched.map(f=>`${nm(f.w)} from ${f.from}`).join(' and ')} as brought over from next door.`:r.fromBig?` ${plural(r.fromBig,'bottle')} came from the big warehouse.`:'')
   +(r.short.length?` I could not find ${r.short.map(s=>`${s.n} × ${nm(s.w)}`).join('; ')} anywhere, so please check the box.`:'');
+function ctxPrintOrder(){return orderFocus&&!$('orders').hidden?orderByNo(orderFocus):null;}
 function printReply(p){let list,kind=p.kind;
   if(p.order){list=[p.order.o];if(p.order.packed)kind='labels';else if(!kind)kind='all';}
   else{list=orderQueue();if(!kind)kind='sheet';}
   if(!openPrint(kind,list))return 'There are no orders to print right now.';
-  return `Here is the print preview: ${KINDN[kind].toLowerCase()} for ${list.length===1?'order '+list[0].no:plural(list.length,'order')}. This sample page shows the preview only; it is not connected to a printer.`;}
+  return `Here is the print preview: ${KINDN[kind].toLowerCase()} for ${list.length===1?'order '+list[0].no:plural(list.length,'order')}. Press Print and pick the printer in the dialog.`;}
 // "what do I pack next": inside a pick route it is the next bottle, otherwise the next order
 function nextReply(){const ro=route&&orderByNo(route.no);
   if(isBatch()){const os=routeOrders(),c=curStop();if(c){const left=route.stops.filter(s=>!s.done).length;showStop(c);return{text:`Next on the route for ${os.length} orders: ${stopLine(c)}. ${left} to go.`,chips:batchChips()};}
@@ -4075,6 +4147,8 @@ function parseLocal(raw){const t=norm(raw).replace(/^(hey|hi|ok|okay|yo)\s+(elka
     out.intent='route';out.o=curO||nextOrder();out.hand=!!curO;out.only=/\b(small warehouse|shop|store)\b/.test(t)?'small':/\b(big warehouse|next door|backstock|other warehouse)\b/.test(t)?'big':/\bhere\b/.test(t)?screenAt:null;return out;}}
   // what is missing for the order in hand (asked, never volunteered)
   if(curO&&/\b(missing|short|next door)\b/.test(t)&&(ctxO||/\b(order|it|this)\b/.test(t))){out.intent='missing';out.o=curO;return out;}
+  if(/^((open|show)( me)?( the)? )?printers?$/.test(t)||/\b(open|show)( me)? the printers?\b/.test(t)){out.intent='printer';return out;}
+  if(/\bprint\w*\b/.test(t)&&!ord){const doc=/\b(restock|top up|refill)\b/.test(t)?'restock':/\bcash\b/.test(t)?'cash':/\btest\b/.test(t)?(/\blabel/.test(t)?'test-label':'test-office'):/\blabels?\b/.test(t)&&/\b(packed|ready|shelf|shelves|van|all)\b/.test(t)&&!/\b(to pack|waiting)\b/.test(t)?'ready':/^(print|print it|print this|print that|print me this|print me that)$/.test(t)?'this':null;if(doc){out.intent='printdoc';out.doc=doc;return out;}}
   if(/\bprint\w*\b/.test(t)||(/\b(labels?|packing slips?|order sheets?|pick sheets?|pick lists?)\b/.test(t)&&!/\b(where|wheres|wine|wines|bottles?)\b/.test(t))){if(!/\bprint/.test(t)&&guard)out.conf='low';out.intent='print';out.order=ord;out.kind=/\blabels?\b/.test(t)?'labels':/\bslips?\b/.test(t)?'slip':/\b(sheets?|pick)/.test(t)?'sheet':/\b(everything|all three)\b/.test(t)?'all':null;return out;}
   if(ord){out.intent='order';out.order=ord;return out;}
   if(/\bcash (sales?|list|log)\b/.test(t)){out.intent='cash';return out;}
@@ -4137,6 +4211,10 @@ function runLocal(p){if(p.intent!=='email'&&p.intent!=='emailundo')emTalk=false;
     case'orders':{const r=ordersReply();say(r.text,r.chips);return;}
     case'order':{const r=orderReply(p.order);say(r.text,r.chips);return;}
     case'print':say(printReply(p));return;
+    case'printer':openPrinter();say('Here is the printer on the packing table. Tell me what to print, or turn on printing by itself after an order is packed.');return;
+    case'printdoc':{let d=p.doc;if(d==='this'){const tb=curTab();d=tb==='restock'?'restock':ctxPrintOrder()?null:'next';if(!d){const o=ctxPrintOrder();openPrint('all',[o]);say(`Here is order ${o.no}: sheet, slip and labels. Press Print and pick the printer.`);return;}}
+      const N={restock:'the restock list',cash:'the cash sales to enter in Shopify','test-label':'a test label','test-office':'a test page',ready:'the labels for the packed orders',next:'the next order: sheet, slip and labels',sheets:'the order sheets'};
+      if(!printDoc(d)){say('There is nothing to print for that right now.');return;}say(`Here is ${N[d]||'that'}. Press Print and pick the printer in the dialog.`);return;}
     case'next':{const r=nextReply();say(r.text,r.chips);return;}
     case'route':{if(isBatch()&&!p.hand){const r=batchReply(routeOrders(),p.only);say(r.text,r.chips);return;}
       if(!p.o||!orderByNo(p.o.no)){say('There are no orders waiting to be packed.');return;}const r=routeReply(p.o,p.only);say(r.text,r.chips);return;}
@@ -4341,10 +4419,10 @@ function elkaTools(ctx){const T=[
    return{total:all.length,counts:cnt,first:all.slice(0,12).map(w=>{const d=IDX[w.i];return{id:w.i,name:w.n,status:d.status==='missing'?'not_on_shelf':d.status,shop_row:d.lanes[0]?`${d.lanes[0].l.id} row ${d.lanes[0].k+1}`:null,take_from:d.underB?`box under ${d.under[0].l.id}`:d.bigC?`${d.big[0].l.id} (${d.big[0].c} cases)`:'none left, reorder'};})};}},
  {name:'list_orders',description:'Orders waiting to be packed, in the order to pack them (with each line: quantity, wine, where to pick it, and whether a case must be fetched from next door or it is not in stock), and orders already packed on the ready-to-ship shelves. Opens the Orders tab.',
   execute(){openOps('orders');const nx=nextOrder();return{pack_next:nx?nx.no:null,to_pack_in_order:orderQueue().map(o=>({order:o.no,customer:o.cust,ship_to:o.to,ships_by:METHOD[o.method],tags:o.tags,bottles:orderBottles(o),boxes:o.boxes,lines_scanned:(o.picked||[]).length,lines:o.items.map(it=>{const v=lineWhere(it);return{qty:it.q,wine:nm(it.w),pick_from:v.pick||null,fetch_case_from_next_door:!!v.fetch,not_in_stock:v.short};})})),packed_ready_to_ship:readyOrders().map(({o,l})=>({order:o.no,customer:o.cust,boxes:o.boxes,shelf:l.id,ships_by:METHOD[o.method],ship_to:o.to}))};}},
- {name:'print_order',description:'Open the print preview for an order: what is "sheet" (order sheet / pick list), "slip" (packing slip), "labels" (one per box) or "all". order is the order number such as 9834, or "all" for every order waiting to be packed. It is a preview on screen: this sample page is not connected to a printer.',
+ {name:'print_order',description:'Open the print preview for an order: what is "sheet" (order sheet / pick list), "slip" (packing slip), "labels" (one per box) or "all". order is the order number such as 9834, or "all" for every order waiting to be packed. It opens the print preview with a Print button that opens the print dialog of the computer.',
   inputSchema:{type:'object',properties:{order:{type:'string'},what:{type:'string',enum:['sheet','slip','labels','all']}},required:['order']},
   execute(a){const all=/all/i.test(String(a.order)),f=all?null:findOrder(String(a.order));if(!all&&!f)throw new Error('No order with that number.');
-   const kind=['sheet','slip','labels','all'].includes(a.what)?a.what:(all?'sheet':'all'),k=f&&f.packed?'labels':kind;if(!openPrint(k,all?orderQueue():[f.o]))throw new Error('Nothing to print.');return{preview_open:KINDN[k],orders:all?state.orders.length:1,note:'This is a preview on screen. This sample page is not connected to a printer.'};}},
+   const kind=['sheet','slip','labels','all'].includes(a.what)?a.what:(all?'sheet':'all'),k=f&&f.packed?'labels':kind;if(!openPrint(k,all?orderQueue():[f.o]))throw new Error('Nothing to print.');return{preview_open:KINDN[k],orders:all?state.orders.length:1,note:'The print preview is open. The person presses Print and picks the printer in the dialog.'};}},
  {name:'mark_order_packed',description:'Mark one order as packed, when the box is closed: its bottles leave stock, its boxes go on a ready-to-ship shelf and it gets the Packed at tag. With no order it uses the order being picked. Returns the shelf and anything that could not be found.',
   inputSchema:{type:'object',properties:{order:{type:'string'},all_on_route:{type:'boolean'}}},
   execute(a){if(!a.order&&isBatch()){if(!a.all_on_route&&curStop())throw new Error('Several orders are being picked on one route and some stops are not scanned yet. Give one order number, or all_on_route true to pack every order on the route.');const r=packBatch();ctx.changed=true;return{done:r.text};}
