@@ -544,6 +544,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;color:var(--ink);ba
 body.elka-open #joy{display:none!important}
 
 @media print{body>*:not(#print){display:none!important}#print{position:static!important;background:none!important;padding:0!important;overflow:visible!important}#print .pbar{display:none!important}.paper{box-shadow:none!important;margin:0 auto!important;border-radius:0!important;page-break-after:always;break-after:page}html,body{background:#fff!important;overflow:visible!important;height:auto!important}}
+.hrsh{flex-wrap:wrap;align-items:center}.hrsh>span:first-child{flex:1 1 150px}.hrtab{overflow-x:auto;margin:4px 0 8px}.hrtab table{width:100%;border-collapse:collapse;font-size:13.5px}.hrtab th,.hrtab td{padding:6px 6px;border-top:1px solid var(--line);text-align:left;white-space:nowrap}.hrtab th{font-weight:600;color:var(--muted);font-size:12px}.hrtab .r{text-align:right}.hrtab .cur{background:var(--panel-2,rgba(0,0,0,.04))}.hrtm{width:96px;font:inherit;font-size:13px;padding:3px 4px}.hrrate{width:64px;font:inherit;font-size:13px;padding:3px 6px}.hrform{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:8px 0}.hrform input,.hrform select{font:inherit;padding:6px 8px}
 .rcgrid{display:grid;grid-template-columns:auto minmax(0,1fr) auto 64px auto;gap:8px 10px;align-items:center;margin:10px 0;font-size:14px}.rcgrid .r{text-align:right}.rcck input{width:20px;height:20px;accent-color:#8c2f39}.rcgot{width:64px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;font:inherit;background:var(--card,#fff);color:inherit;box-sizing:border-box}.rcgot:disabled{opacity:.45}
 .prsws{display:grid;gap:8px;margin-bottom:6px}.prsw{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}.prsw input{width:18px;height:18px;accent-color:var(--accent,#8c2f39)}
 /* print preview: paper sheets over the screen */
@@ -2753,10 +2754,10 @@ function syncFull(){const on=opsFull&&!!opsOpen()&&!(innerWidth<=720&&elkaOpen),
 function setFull(on){opsFull=!!on;syncFull();layoutElka();}
 function mapWanted(){turnMap=true;if(!camQuiet&&opsFull&&opsOpen())setFull(false);}
 const wantFull=f=>f!=null?!!f:(elkaTurn?!turnMap:true);
-const TABS=[['today','Today'],['orders','Orders'],['pickup','Pickup'],['deliver','Delivery'],['driver','Driver'],['owner','Owner'],['recv','Receiving'],['restock','Restock'],['agents','Agents']];
-const AGT={pickup:'Driver pickup',deliver:'Delivery',driver:'Routes and drivers',owner:'Owner',recv:'Receiving',team:'Agents desk',product:'Product upload agent',email:'Email agent',printer:'Printer'};
-const AGTAB={pickup:'pickup',deliver:'deliver',driver:'driver',owner:'owner',recv:'recv',team:'agents',product:'agents',email:'agents',printer:'agents'};
-const TABN={today:'Today',orders:'Orders',pickup:'Pickup',deliver:'Delivery',driver:'Routes and drivers',owner:'Owner',recv:'Receiving',restock:'Restock',agents:'Agents'};
+const TABS=[['today','Today'],['orders','Orders'],['pickup','Pickup'],['deliver','Delivery'],['driver','Driver'],['owner','Owner'],['hours','Hours'],['recv','Receiving'],['restock','Restock'],['agents','Agents']];
+const AGT={pickup:'Driver pickup',deliver:'Delivery',driver:'Routes and drivers',owner:'Owner',hours:'Employee hours',recv:'Receiving',team:'Agents desk',product:'Product upload agent',email:'Email agent',printer:'Printer'};
+const AGTAB={pickup:'pickup',deliver:'deliver',driver:'driver',owner:'owner',hours:'hours',recv:'recv',team:'agents',product:'agents',email:'agents',printer:'agents'};
+const TABN={today:'Today',orders:'Orders',pickup:'Pickup',deliver:'Delivery',driver:'Routes and drivers',owner:'Owner',hours:'Employee hours',recv:'Receiving',restock:'Restock',agents:'Agents'};
 function opsOpen(){return OPSP.map($).find(e=>!e.hidden)||null;}
 function hideRight(except){RIGHT.forEach(id=>{if(id!==except)$(id).hidden=true;});}
 function curTab(){const e=opsOpen();if(!e)return null;return e.id==='feed'?'today':e.id==='orders'?'orders':e.id==='drawer'?'restock':AGTAB[agentKind]||'agents';}
@@ -2775,7 +2776,7 @@ function tabCam0(k){if(walk||route)return;
   else if(k==='recv')pinpoint(byId.RECV,-1,{fast:true,keep:true});
   else if(k==='restock'){clearBeacon();setView(screenAt==='big'?'big':'shelves');}
   else if(k==='agents')deskCam();
-  else if(k==='today'||k==='owner'||k==='deliver'||k==='driver'){clearBeacon();setView('overview');}}
+  else if(k==='today'||k==='owner'||k==='hours'||k==='deliver'||k==='driver'){clearBeacon();setView('overview');}}
 function restoreOps(){if(opsBack&&!opsOpen()){const t=opsBack;opsBack=null;openOps(t,true,false);}}
 const pickupBoxes=()=>readyOrders().filter(x=>x.o.method==='van'&&rmOnVan(x.o)).reduce((a,x)=>a+x.o.boxes-(x.o.loaded||0),0);
 function syncNav(){const cur=curTab();if(cur)opsTab=cur;syncFull();
@@ -3113,7 +3114,7 @@ function drvShell(title,back,body){const d=drv,open=vanOpen().length,at={home:'h
 function drvScreen(){const d=drv,S=drvStops(),rdy=vanRdy(),tp=vanTP(),van=vanIn(),open=vanOpen(),bx=drvBoxes();
   const tpNote=tp.length?`<div class="note warn">Still being packed: ${tp.map(o=>esc(o.no)).join(', ')}. ${tp.length>1?'They go':'It goes'} on the next run if the van leaves first.</div>`:'';
   if(d.scr==='bye'&&!d.on)return['Elk Driver','',`<div class="pclock"><h2>Clocked out</h2><div class="meta">Today: <b>${esc(d.hours||'0:00')}</b> hours, ${esc(d.inAt)} to ${esc(d.outAt)}. Sent to the owner screen for approval.</div><button class="lg primary" data-go="owner">See it on the owner screen</button><button class="sm" data-dv="reset">Start the driver preview again</button></div>`];
-  if(!d.on)return['Elk Driver','',`<div class="pclock"><span class="logo big"><img alt="" src="${logoSrc()}"></span><h2>Good ${dayPart()}, ${VAN.driver}</h2><div class="meta">You are at the <b>small warehouse</b>. Location confirmed.</div><button class="lg primary" data-dv="in">Clock in</button><div class="hint">Your hours start now and show up on the owner screen.</div></div>`];
+  if(!d.on)return['Elk Driver','',`<div class="pclock"><span class="logo big"><img alt="" src="${logoSrc()}"></span><h2>Good ${dayPart()}, ${VAN.driver}</h2><div class="meta">You are at the <b>small warehouse</b>. Location confirmed.</div><button class="lg primary" data-dv="in">Clock in</button><div class="hint">Your hours start now and show up in Employee hours.</div></div>`];
   if(d.scr==='where')return['My packages','home',`<div class="meta">Packed boxes for route ${VAN.route} wait on the <b>ready-to-ship shelves</b> by the garage door of the small warehouse. Tap a shelf to see it on the 3D map.</div>`
     +(rdy.length?rdy.map(({o,l})=>`<div class="srow"><span class="num">${S.indexOf(o)+1}</span><span class="sm2"><b>${esc(o.no)} ${esc(o.cust)}</b><span class="meta">${esc(o.to)} · ${boxesTxt(o.boxes)}${o.loaded?` · ${o.loaded} already in the van`:''}</span></span><span class="rt2"><button class="sm" data-vshow="${l.id}" title="Show this shelf on the 3D map">Shelf ${l.id}</button></span></div>`).join(''):`<div class="empty">${van.length?'Nothing is left on the shelves. Every packed box is in the van.':'No van order is packed yet.'}</div>`)
     +(van.length?`<div class="sec">Already in the van</div><div class="meta">${van.map(o=>`${esc(o.no)} (${boxesTxt(o.boxes)})`).join(' · ')}</div>`:'')+tpNote
@@ -3150,7 +3151,7 @@ function drvScreen(){const d=drv,S=drvStops(),rdy=vanRdy(),tp=vanTP(),van=vanIn(
     return['End of shift','home',`<div class="pshift"><span>On shift since ${esc(d.inAt)}</span><b>${drvShift()}</b></div><div class="rs"><div class="nm">Route ${VAN.route}${van.length&&!open.length?' is done':''}</div><div class="acts"><span class="pill ok">${van.filter(o=>o.delivered).length} delivered</span><span class="pill ${fl.length?'low':'mth'}">${fl.length} not delivered</span>${open.length?`<span class="pill mth">${plural(open.length,'stop')} still open</span>`:''}</div></div>`
      +(open.length&&d.out?`<div class="note warn">${plural(open.length,'stop')} still ${open.length>1?'have':'has'} boxes in the van.</div><div class="acts"><button class="sm primary" data-dv="go" data-n="route">Back to the route</button></div>`:'')
      +(fl.length?`<div class="sec">Return scan · ${retD} of ${retN}</div><div class="meta">Scan the boxes that came back, so they go on the shelf again and the owner knows.</div>`+fl.flatMap(o=>Array.from({length:o.boxes},(_,i)=>{const back=i<(d.ret[o.no]||0);return `<div class="srow${back?' done':' fail'}"><span class="num">${back?'✓':'↩'}</span><span class="sm2"><b class="tag">${boxTag(o,i)}</b><span class="meta">${esc(o.cust)} · ${esc(o.failed.toLowerCase())}</span></span><span class="rt2">${back?'<span class="pill ok">Back on the shelf</span>':`<button class="sm" data-dv="ret" data-n="${esc(o.no)}">Scan</button>`}</span></div>`;})).join(''):'')
-     +`<button class="lg ${pend?'locked':'brass'}" data-dv="out">Clock out</button><div class="hint">${pend?'Clock out opens when the returned boxes are scanned.':'Your hours go to the owner screen.'}</div>`];}
+     +`<button class="lg ${pend?'locked':'brass'}" data-dv="out">Clock out</button><div class="hint">${pend?'Clock out opens when the returned boxes are scanned.':'Your hours go to Employee hours.'}</div>`];}
   return['Today','',`<div class="pshift"><span>On shift since ${esc(d.inAt)}</span><b>${drvShift()}</b></div>
     <div class="rs"><div class="top"><div class="nm" style="flex:1">Route ${VAN.route}</div><span class="pill mth">${plural(S.length,'stop')}</span></div><div class="meta">${d.out?`${plural(open.length,'stop')} left · ${van.filter(o=>o.delivered).length} delivered`:`${plural(bx.shelf,'box')} on the ready shelves · ${bx.van} in the van · leaves at ${VAN.leaves}`}</div></div>${tpNote}
     <button class="bigb" data-dv="go" data-n="where"><b>Where are my packages?</b><span class="meta">The shelf and the box count for each order</span></button>
@@ -3168,7 +3169,7 @@ function drvOverlay(){
       +`<div class="hint">The customer gets this page by text: once when the van leaves, and again with the photo when the boxes are at the door. This is a sample page, and this preview sends no texts.</div></div></div>`;}}
   return '';}
 function driverHtml(){const d=drv,ov=drvOverlay(),scr=ov?null:drvScreen(),at=!d.on?(d.scr==='bye'?'bye':'clock'):d.scr,stepOf={clock:0,home:0,where:1,load:2,route:3,stop:4,end:5,bye:5}[at];
-  const steps=[['clock','Clock in','Hours start and show up on the owner screen.'],['where','Where are my packages?','The shelf and the box count for each order on the run.'],['load','Load the van','Every box is scanned into the van. The route will not start with a box missing.'],['route','Route','The stops in driving order. Navigate hands over to Google Maps, and the customer sees the van coming.'],['stop','At the door','Be at the address, scan every box for that stop, take a photo. Only then does Delivered open.'],['end','End of shift','Anything not delivered gets a return scan. Then clock out.']];
+  const steps=[['clock','Clock in','Hours start and show up in Employee hours.'],['where','Where are my packages?','The shelf and the box count for each order on the run.'],['load','Load the van','Every box is scanned into the van. The route will not start with a box missing.'],['route','Route','The stops in driving order. Navigate hands over to Google Maps, and the customer sees the van coming.'],['stop','At the door','Be at the address, scan every box for that stop, take a photo. Only then does Delivered open.'],['end','End of shift','Anything not delivered gets a return scan. Then clock out.']];
   const spent=!vanRdy().length&&!vanTP().length&&!vanOpen().length;
   return `<div class="note">This is a preview of what the driver sees on the phone. Click through it like ${VAN.driver} would. It runs on the sample orders of this page, so a box you scan here also moves in Pickup and Delivery.</div>
    <div class="dvgrid"><div class="phone" id="dvPhone">${ov||drvShell(scr[0],scr[1],scr[2])}</div>
@@ -3179,7 +3180,7 @@ function drvAfter(){if(!drvTop)return;drvTop=false;const p=$('dvPhone'),b=$('aBo
 const drvPaint=()=>{drvTop=true;if(agentKind==='driver'&&!$('agent').hidden)renderAgent();};
 function doorScan(o){if((o.dropped||0)>=o.boxes)return{ok:false,text:`Every box for order ${o.no} is already scanned.`};const before=snap();o.dropped=(o.dropped||0)+1;pushUndo(before,`a door scan on order ${o.no}`);changed();return{ok:true,text:`Box ${o.dropped} of ${o.boxes} scanned at the door for order ${o.no}.`};}
 function drvStart(){const v=rmVanOrder(vanIn());state.van=v;drv.out=true;drv.cur=null;if(rm){rmR('R1').st='sent';rmSync();}log(`<b>${esc(VAN.driver)}</b> is out for delivery on route ${VAN.route}, ${plural(v.length,'stop')}`);changed();}
-function drvClockIn(){const d=drv;d.on=true;d.t0=Date.now();d.inAt=clock();d.hours='';d.outAt='';if(d.scr==='clock'||d.scr==='bye')d.scr='home';log(`<b>${esc(VAN.driver)}</b> clocked in on the driver app`);}
+function drvClockIn(){const d=drv;d.on=true;d.t0=Date.now();d.inAt=clock();d.hours='';d.outAt='';hrIn(HR_DRV,true);if(d.scr==='clock'||d.scr==='bye')d.scr='home';log(`<b>${esc(VAN.driver)}</b> clocked in on the driver app`);}
 // what one scan does. The camera and "enter by hand" both end here.
 function drvResolve(c){
   if(c.wrong){if(c.mode==='load'){const x=[...state.orders,...readyOrders().map(y=>y.o)].find(o=>o.method!=='van');return{ok:false,text:x?`That is order ${x.no}, going by ${METHOD[x.method]}. It is not on route ${VAN.route}, so it stays on the shelf.`:`That box is not on route ${VAN.route}. It stays on the shelf.`};}
@@ -3226,7 +3227,7 @@ function drvAct(a,n,quiet){const d=drv,van=vanIn(),o=van.find(x=>x.no===d.cur),f
    case'failwhy':if(o){const before=snap();o.failed=n;o.failedAt=clock();pushUndo(before,`marking order ${o.no} as not delivered`);log(`Order <b>${esc(o.no)}</b> not delivered: ${esc(n.toLowerCase())}`);go('route');flash('info',`Order ${o.no} is marked not delivered: ${n.toLowerCase()}. The boxes come back for a return scan.`);changed();}break;
    case'out':{if(!d.on)break;const fl=van.filter(x=>x.failed&&!x.delivered),pend=fl.reduce((s,x)=>s+x.boxes-Math.min(x.boxes,d.ret[x.no]||0),0);
      if(pend){d.scr='end';flash('info',`${plural(pend,'returned box')} still to scan before you can clock out.`);break;}
-     d.hours=drvShift();d.outAt=clock();d.on=false;d.scr='bye';drvMsg=null;log(`<b>${esc(VAN.driver)}</b> clocked out, ${d.hours} hours`);break;}
+     d.hours=drvShift();d.outAt=clock();d.on=false;hrOut(HR_DRV,true);d.scr='bye';drvMsg=null;log(`<b>${esc(VAN.driver)}</b> clocked out, ${d.hours} hours`);break;}
    case'reset':drv=drv0();drvMsg=null;drvWhy=null;break;
    case'fresh':drvSave();$('reset').click();break;
   }
@@ -3544,9 +3545,87 @@ function ownerHtml(){const S=STATS,all=S.nPack+S.nReady+S.nVan,cs=state.cash||[]
   h+=`<div class="blk"><div class="sec">Where today's money is</div><div class="rs">${row('Orders still to pack','$'+fmt(Math.round(S.toPack)))}${row('Packed, on the ready shelves','$'+fmt(Math.round(S.packed)))}${row('In the van or delivered','$'+fmt(Math.round(S.out)))}${row('Cash sales to enter in Shopify','$'+fmt(Math.round(S.cash)))}</div></div>`;
   
   h+=`<div class="blk"><div class="sec">Stock</div><div class="rs">${row('Cases in the big warehouse',fmt(S.cases))}${row('Bottles in the shop',fmt(S.btl))}${row('Wines to top up in the shop',S.need)}${row('Cases waiting to be sorted',S.recv)}${npCases()?row('Cases of new wines set aside',npCases()):''}<div class="acts"><button class="sm" data-go="restock">Open Restock</button><button class="sm" data-go="recv">Open Receiving</button></div></div></div>`;
-  h+=`<div class="blk"><div class="sec">Hours today</div><div class="rs">${row(VAN.driver+', driver',drv.on?`on shift since ${esc(drv.inAt)} · ${drvShift()}`:drv.hours?`${esc(drv.inAt)} to ${esc(drv.outAt)} · ${esc(drv.hours)} hours`:'not clocked in')}<div class="acts"><button class="sm" data-rm="view" data-id="phone">Open the driver app</button><button class="sm" data-rm="view" data-id="drivers">Drivers</button></div><div class="hint">The driver clocks in and out on the driver app, or by telling Elka “clock in”.</div></div></div>`;
+  {const on=HR.staff.filter(x=>hrOpen(x.id)),now=Date.now(),td=hrDay(now);h+=`<div class="blk"><div class="sec">Employee hours today</div><div class="rs">${HR.staff.map(x=>{const e=hrOpen(x.id),m=hrDayMs(x.id,td,now);return row(`${esc(x.name)}, ${esc(x.role.toLowerCase())}`,e?`on shift since ${hrT(e.a)} · ${hrDur(now-e.a)}`:m?`${hrDur(m)} hours`:'not in today');}).join('')}<div class="acts"><button class="sm primary" data-go="hours">Open Employee hours</button></div><div class="hint">${on.length} working now. The week, fixes and the timesheet for payroll are in Hours.</div></div></div>`;}
   if(cs.length)h+=`<div class="blk"><div class="sec">Cash sales recorded here</div><div class="rs">${cs.slice(0,6).map(c=>row(`${c.b} × ${esc(nm(c.w))}`,'$'+fmt(c.b*WINES[c.w].p))).join('')}</div></div>`;
   return h+`</div><div class="hint">The sales are the sample orders.</div>`+SAMPLE;}
+
+// --- Employee hours: who is working now, the week by person, shifts fixed by hand, a timesheet for payroll. Saved in this browser. ---
+const HRK='elk-ops-hours',HR_DRV='s1';
+const hrDay=t=>{const d=new Date(t);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+const hrAt=(day,hm)=>{const[y,m,d]=day.split('-').map(Number),[h,mi]=hm.split(':').map(Number);return new Date(y,m-1,d,h,mi).getTime();};
+const hrT=t=>new Date(t).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+const hrHM=t=>{const d=new Date(t);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');};
+const hrDur=ms=>{const m=Math.max(0,Math.round(ms/60000));return Math.floor(m/60)+':'+String(m%60).padStart(2,'0');};
+const hrDec=ms=>(Math.max(0,ms)/3600000).toFixed(2);
+function hrWeek0(t){const d=new Date(t);d.setHours(0,0,0,0);d.setDate(d.getDate()-d.getDay());return d.getTime();}   // weeks run Sunday to Saturday
+function hrSeed(){const staff=[{id:'s1',name:'Danny',role:'Driver',rate:''},{id:'s2',name:'Maya',role:'Driver',rate:''},{id:'s3',name:'Yossi',role:'Driver',rate:''},{id:'s4',name:'Avi',role:'Warehouse',rate:''},{id:'s5',name:'Rachel',role:'Packing',rate:''}];
+  const plan={s1:['15:30','21:00'],s2:['10:00','16:00'],s3:['08:00','14:00'],s4:['09:00','17:30'],s5:['10:30','18:00']},log=[],w0=hrWeek0(Date.now()),today=hrDay(Date.now());
+  for(let i=0;i<7;i++){const day=hrDay(w0+i*864e5+3600e3);if(day>=today)break;if(i===6)continue;
+    staff.forEach((s,k)=>{if((i+k)%5===4)return;const[a,b]=plan[s.id],j=((i*7+k*3)%5)*5-10;log.push({id:'h'+i+k,who:s.id,a:hrAt(day,a)+j*60000,b:hrAt(day,b)+(j+((i+k)%3)*5)*60000,sample:true});});}
+  return{v:1,staff,log,wk:0};}
+let HR=hrSeed();try{const d=JSON.parse(localStorage.getItem(HRK)||'null');if(d&&d.v===1)HR=d;}catch(e){}
+const hrSave=()=>{try{localStorage.setItem(HRK,JSON.stringify(HR));}catch(e){}};
+let hrForm='',hrMsg='';
+const hrWho=id=>HR.staff.find(s=>s.id===id);
+const hrOpen=id=>HR.log.find(e=>e.who===id&&!e.b);
+const hrMs=(e,now)=>(e.b||now)-e.a;
+function hrIn(id,from){if(hrOpen(id))return false;HR.log.push({id:'h'+Date.now().toString(36),who:id,a:Date.now(),b:null});hrSave();const s=hrWho(id);if(s&&!from)log(`<b>${esc(s.name)}</b> clocked in`);return true;}
+function hrOut(id,from){const e=hrOpen(id);if(!e)return false;e.b=Math.max(e.a+60000,Date.now());hrSave();const s=hrWho(id);if(s&&!from)log(`<b>${esc(s.name)}</b> clocked out, ${hrDur(e.b-e.a)} hours`);return true;}
+// the driver app clocks Danny in and out here too
+function hrClock(id,dir){if(id===HR_DRV){if(dir==='in'){if(drv.on)return hrIn(id,true)||true;drvAct('in','',true);return true;}if(!drv.on)return hrOut(id);drvAct('out','',true);if(drv.on){toast('Danny has returned boxes to scan on the driver app before clocking out.');return false;}return true;}
+  return dir==='in'?hrIn(id):hrOut(id);}
+function hrDayMs(id,day,now){return HR.log.filter(e=>e.who===id&&hrDay(e.a)===day).reduce((a,e)=>a+hrMs(e,now),0);}
+function hrWeekDays(){const w0=hrWeek0(Date.now())+HR.wk*7*864e5;return[...Array(7)].map((_,i)=>hrDay(w0+i*864e5+3600e3));}
+function hrWeekTxt(){const D=hrWeekDays(),f=d=>new Date(d+'T12:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});return `${f(D[0])} to ${f(D[6])}`;}
+function hrRows(){const now=Date.now(),D=hrWeekDays();return HR.staff.map(s=>{const per=D.map(d=>hrDayMs(s.id,d,now)),tot=per.reduce((a,b)=>a+b,0),r=parseFloat(s.rate);return{s,per,tot,pay:r>0?r*tot/3600000:null};});}
+function hoursHtml(){const now=Date.now(),today=hrDay(now),D=hrWeekDays(),rows=hrRows(),on=HR.staff.filter(s=>hrOpen(s.id));
+  const sel=(n,v)=>`<select id="${n}">${HR.staff.map(s=>`<option value="${s.id}"${s.id===v?' selected':''}>${esc(s.name)}</option>`).join('')}</select>`;
+  let h=`<div class="tiles">${`<button class="tile" data-hr="scroll" data-n="now"><b>${on.length} of ${HR.staff.length}</b><span>Working now</span></button>`}<button class="tile" data-hr="scroll" data-n="wk"><b>${hrDur(rows.reduce((a,r)=>a+(r.per[D.indexOf(today)]||0),0))}</b><span>Hours today</span></button><button class="tile" data-hr="scroll" data-n="wk"><b>${hrDur(rows.reduce((a,r)=>a+r.tot,0))}</b><span>Hours this week</span></button></div>`;
+  if(hrMsg)h+=`<div class="note">${hrMsg}</div>`;
+  h+=`<div class="blks"><div class="blk" id="hrNow"><div class="sec">Today · clock in and out</div>${HR.staff.map(s=>{const e=hrOpen(s.id),t=hrDayMs(s.id,today,now);
+    return `<div class="rs ocard"><div class="top"><div style="flex:1;min-width:0"><div class="nm">${esc(s.name)} <span class="meta">${esc(s.role)}</span></div><div class="meta">${e?`<span class="pill ok">On shift</span> since ${hrT(e.a)} · ${hrDur(now-e.a)}`:t?`Clocked out · ${hrDur(t)} today`:'Not clocked in today'}</div></div>
+      <button class="sm${e?'':' primary'}" data-hr="${e?'out':'in'}" data-n="${s.id}">${e?'Clock out':'Clock in'}</button></div></div>`;}).join('')}
+    <div class="hint">Anyone can clock in here, or tell Elka “clock in Avi”. ${esc(hrWho(HR_DRV)?hrWho(HR_DRV).name:'The driver')} can also clock in on the driver app, and it lands here.</div></div>`;
+  h+=`<div class="blk" id="hrWk"><div class="sec">Week of ${hrWeekTxt()}</div><div class="acts" style="margin:0 0 8px"><button class="sm" data-hr="wk" data-n="-1">Previous week</button>${HR.wk?`<button class="sm" data-hr="wk" data-n="0">This week</button>`:''}${HR.wk<0?`<button class="sm" data-hr="wk" data-n="1">Next week</button>`:''}</div>
+    <div class="hrtab"><table><thead><tr><th>Name</th>${D.map(d=>`<th class="r${d===today?' cur':''}">${new Date(d+'T12:00').toLocaleDateString('en-US',{weekday:'short'})}</th>`).join('')}<th class="r">Total</th>${rows.some(r=>r.pay!=null)?'<th class="r">Pay</th>':''}</tr></thead><tbody>
+    ${rows.map(r=>`<tr><td>${esc(r.s.name)}</td>${r.per.map((m,i)=>`<td class="r${D[i]===today?' cur':''}">${m?hrDur(m):'·'}</td>`).join('')}<td class="r"><b>${hrDur(r.tot)}</b></td>${rows.some(x=>x.pay!=null)?`<td class="r">${r.pay!=null?'$'+r.pay.toFixed(2):''}</td>`:''}</tr>`).join('')}</tbody></table></div>
+    <div class="acts"><button class="sm primary" data-hr="csv">Download the timesheet</button><button class="sm" data-hr="print">Print the timesheet</button></div><div class="hint">The download is a CSV file that opens in Excel or Google Sheets, one line for each shift, ready for payroll.</div></div>`;
+  const wk=HR.log.filter(e=>D.includes(hrDay(e.a))).sort((x,y)=>y.a-x.a);
+  h+=`<div class="blk"><div class="sec">Shifts this week · fix a time</div>${wk.length?`<div class="rs">${wk.map(e=>{const s=hrWho(e.who);if(!s)return'';return `<div class="mrow hrsh"><span>${esc(s.name)} · ${new Date(e.a).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}</span><span style="display:flex;gap:6px;align-items:center;white-space:nowrap"><input class="hrtm" type="time" value="${hrHM(e.a)}" data-hre="${e.id}" data-k="a" aria-label="Clock in time">to${e.b?`<input class="hrtm" type="time" value="${hrHM(e.b)}" data-hre="${e.id}" data-k="b" aria-label="Clock out time">`:' <span class="pill ok">now</span>'}<b style="min-width:42px;text-align:right">${hrDur(hrMs(e,now))}</b><button class="sm ghost" data-hr="del" data-n="${e.id}" aria-label="Remove this shift">×</button></span></div>`;}).join('')}</div>`:'<div class="empty">No shifts this week yet.</div>'}
+    ${hrForm==='shift'?`<div class="rs card"><div class="nm">Add a shift by hand</div><div class="hrform">${sel('hrP','')}<input id="hrD" type="date" value="${today}"><input id="hrA" type="time" value="09:00"><input id="hrB" type="time" value="17:00"></div><div class="acts"><button class="sm primary" data-hr="addshift">Add the shift</button><button class="sm" data-hr="form" data-n="">Cancel</button></div></div>`:`<div class="acts"><button class="sm" data-hr="form" data-n="shift">Add a shift by hand</button></div>`}
+    <div class="hint">Change a time and it saves. Use this when someone forgot to clock in or out.</div></div>`;
+  h+=`<div class="blk"><div class="sec">The team</div><div class="rs">${HR.staff.map(s=>`<div class="mrow"><span>${esc(s.name)} <span class="meta">${esc(s.role)}</span></span><span style="display:flex;gap:6px;align-items:center;white-space:nowrap"><span class="meta">$</span><input class="hrrate" inputmode="decimal" placeholder="rate" value="${esc(s.rate||'')}" data-hrrate="${s.id}" aria-label="Hourly rate for ${esc(s.name)}"><span class="meta">/hr</span>${s.id===HR_DRV?'':`<button class="sm ghost" data-hr="rm" data-n="${s.id}" aria-label="Remove ${esc(s.name)}">×</button>`}</span></div>`).join('')}</div>
+    ${hrForm==='staff'?`<div class="rs card"><div class="nm">Add someone</div><div class="hrform"><input id="hrN" placeholder="Name"><input id="hrR" placeholder="Job, like Warehouse"><input id="hrRate" inputmode="decimal" placeholder="$ per hour (optional)"></div><div class="acts"><button class="sm primary" data-hr="addstaff">Add to the team</button><button class="sm" data-hr="form" data-n="">Cancel</button></div></div>`:`<div class="acts"><button class="sm" data-hr="form" data-n="staff">Add someone to the team</button></div>`}
+    <div class="hint">With an hourly rate, the week shows the pay. Leave it empty to track hours only.</div></div></div>`;
+  return h+`<div class="hint">The team and the past days of this week are sample data. Hours you clock here are saved in this browser.</div>`+SAMPLE;}
+function hrRefresh(){if(agentKind==='hours'&&!$('agent').hidden)renderAgent();syncNav();}
+function hrCsv(){const D=hrWeekDays(),now=Date.now(),L=[['Name','Job','Date','Clock in','Clock out','Hours']];
+  HR.log.filter(e=>D.includes(hrDay(e.a))).sort((x,y)=>x.a-y.a).forEach(e=>{const s=hrWho(e.who);if(s)L.push([s.name,s.role,hrDay(e.a),hrT(e.a),e.b?hrT(e.b):'still on shift',hrDec(hrMs(e,now))]);});
+  L.push([]);L.push(['Name','Job','Total hours','Rate','Pay']);hrRows().forEach(r=>L.push([r.s.name,r.s.role,hrDec(r.tot),r.s.rate||'',r.pay!=null?r.pay.toFixed(2):'']));
+  const csv=L.map(r=>r.map(c=>/[",\n]/.test(String(c))?`"${String(c).replace(/"/g,'""')}"`:c).join(',')).join('\n');
+  try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=`elk-timesheet-${D[0]}.csv`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);toast('The timesheet is downloading.');}catch(e){toast('The download did not start in this browser.');}}
+function hrDoc(){const D=hrWeekDays(),rows=hrRows(),pay=rows.some(r=>r.pay!=null);
+  return listPaper('Timesheet',`Week of ${hrWeekTxt()}`,['Name',...D.map(d=>new Date(d+'T12:00').toLocaleDateString('en-US',{weekday:'short'})),'Total',...(pay?['Pay']:[]),'Sign'],
+    rows.map(r=>`<tr><td>${esc(r.s.name)}</td>${r.per.map(m=>`<td>${m?hrDur(m):''}</td>`).join('')}<td><b>${hrDur(r.tot)}</b></td>${pay?`<td>${r.pay!=null?'$'+r.pay.toFixed(2):''}</td>`:''}<td></td></tr>`),`Total ${hrDur(rows.reduce((a,r)=>a+r.tot,0))} hours`);}
+function hrAct(a,n){hrMsg='';
+  if(a==='in'||a==='out'){const s=hrWho(n);if(hrClock(n,a)&&s)toast(`${s.name} is clocked ${a}.`);}
+  else if(a==='wk'){HR.wk=+n?Math.min(0,HR.wk+(+n)):0;hrSave();}
+  else if(a==='form')hrForm=n;
+  else if(a==='del'){const i=HR.log.findIndex(e=>e.id===n);if(i>=0){if(HR.log[i].who===HR_DRV&&!HR.log[i].b&&drv.on){toast('Danny is on shift on the driver app. Clock him out first.');return;}HR.log.splice(i,1);hrSave();toast('The shift is removed.');}}
+  else if(a==='addshift'){const p=$('hrP').value,d=$('hrD').value,A=$('hrA').value,B=$('hrB').value;if(!p||!d||!A||!B){toast('Pick the person, the day and both times.');return;}let x=hrAt(d,A),y=hrAt(d,B);if(y<=x)y+=864e5;HR.log.push({id:'h'+Date.now().toString(36),who:p,a:x,b:y});hrForm='';hrSave();toast(`Added ${hrDur(y-x)} for ${hrWho(p).name}.`);}
+  else if(a==='addstaff'){const nm=($('hrN').value||'').trim();if(!nm){toast('Type the name first.');$('hrN').focus();return;}HR.staff.push({id:'s'+Date.now().toString(36),name:nm.replace(/\b\w/g,c=>c.toUpperCase()),role:($('hrR').value||'').trim()||'Warehouse',rate:($('hrRate').value||'').replace(/[^0-9.]/g,'')});hrForm='';hrSave();toast(`${nm} is on the team.`);}
+  else if(a==='rm'){const s=hrWho(n);if(!s)return;if(hrOpen(n)){toast(`${s.name} is on shift. Clock out first.`);return;}HR.staff=HR.staff.filter(x=>x.id!==n);hrSave();toast(`${s.name} is off the list. Past hours stay in the log.`);}
+  else if(a==='csv'){hrCsv();return;}
+  else if(a==='print'){prOpen(`Timesheet · week of ${hrWeekTxt()}`,hrDoc(),'Office printer');return;}
+  else if(a==='scroll'){const e=$(n==='now'?'hrNow':'hrWk');if(e)e.scrollIntoView({behavior:'smooth',block:'start'});return;}
+  hrRefresh();}
+document.addEventListener('change',e=>{const D=e.target.dataset||{};
+  if(D.hre){const x=HR.log.find(y=>y.id===D.hre),v=e.target.value;if(!x||!v)return;const day=hrDay(x.a);if(D.k==='a'){x.a=hrAt(day,v);if(x.b&&x.b<=x.a)x.b+=864e5;}else{let b=hrAt(day,v);if(b<=x.a)b+=864e5;x.b=b;}hrSave();hrRefresh();toast('The time is saved.');}
+  else if(D.hrrate){const s=hrWho(D.hrrate);if(!s)return;s.rate=e.target.value.replace(/[^0-9.]/g,'');hrSave();hrRefresh();}});
+setInterval(()=>{if(agentKind==='hours'&&!$('agent').hidden&&HR.staff.some(s=>hrOpen(s.id))&&!document.activeElement.closest?.('#aBody'))renderAgent();},60000);
+// what Elka knows: who is working, and the week
+function hrNowTxt(){const on=HR.staff.filter(s=>hrOpen(s.id));return on.length?on.map(s=>`${s.name} since ${hrT(hrOpen(s.id).a)}`).join(', '):'nobody is clocked in';}
+function hrFind(t){return HR.staff.find(s=>new RegExp('\\b'+s.name.toLowerCase().replace(/[^a-z' -]/g,'')+'\\b').test(t));}
 
 // --- Agents: the team working inside the one app. This one list drives the Agents desk (the desk in the office) and what Elka can reach. ---
 const AGENTS=[
@@ -3560,7 +3639,7 @@ const AGENTS=[
  {k:'product',n:'Product upload agent',re:/\bproducts?\b|\bupload|\blisting/,agent:'product',what:'Turns a name, a price and a photo into a draft product with a shelf spot.',now:()=>`${plural((state.drafts||[]).length,'draft')} in this preview, nothing sent to Shopify`,say:'Add a new product',ask:'Tell Elka the new product'},
  {k:'email',n:'Email agent',re:/\be ?mails?\b|\bnewsletters?\b|\bcampaigns?\b/,agent:'email',what:'Writes the customer emails and their code for Shopify Email, and remembers the one you are working on.',now:()=>emBusy?'writing now':emSubject()?`“${esc(emSubject())}” is on the desk, not sent`:'ready for a new email',say:'Write an email about what we have plenty of',ask:'Ask Elka for an email'},
  {k:'texts',n:'Customer texts',re:/\btexts?\b|\bsms\b|\btexting\b/,tab:'driver',more:'<button class="sm" data-dv="cust" data-n="">See the page the customer gets</button>',what:'Texts the customer when the order is packed, when the van leaves and at the door, with a page to follow the delivery.',now:()=>'the page the customer sees is in the driver app; this preview sends no texts'},
- {k:'hours',n:'Hours and payroll',re:/\bhours\b|\bpayroll\b|\bclock (in|out)\b|\btimesheets?\b/,tab:'owner',tab2:[['Open the driver app','driver']],what:'Clock in on the driver app or by voice. Hours by person on the owner screen, ready for payroll.',now:()=>drv.on?`${VAN.driver} is clocked in since ${drv.inAt}`:drv.hours?`${VAN.driver} worked ${drv.hours} hours today`:'nobody is clocked in'}];
+ {k:'hours',n:'Hours and payroll',re:/\bhours\b|\bpayroll\b|\bclock (in|out)\b|\btimesheets?\b|\bwho('?s| is| are)( \w+)? (working|on shift|clocked in|in today)\b|\bemployees?\b|\bstaff\b/,tab:'hours',tab2:[['Open the driver app','driver']],what:'Everyone clocks in and out on the Hours screen, by voice, or the driver on the driver app. The week by person, fixes by hand, and a timesheet for payroll.',now:()=>hrNowTxt()}];
 const agentBy=q=>{const t=norm(String(q||''));return AGENTS.find(a=>a.k===t||norm(a.n)===t)||AGENTS.filter(a=>a.k!=='elka').find(a=>a.re.test(t))||(/\belka\b/.test(t)?AGENTS[0]:null);};
 function agentOpen(a){if(a.tab){openOps(a.tab);tabCam(a.tab);}else if(a.agent)openAgent(a.agent);else openAgent('team');}
 function agentCard(a){const go=(l,t,pr)=>`<button class="sm${pr?' primary':''}" data-go="${t}">${l}</button>`;
@@ -3671,7 +3750,7 @@ async function writeDesc(){const n=String(pd.n).trim();if(!n){toast('Type the pr
 $('pdFile').addEventListener('change',()=>{const f=$('pdFile').files[0];$('pdFile').value='';if(!f)return;try{if(pd.img)URL.revokeObjectURL(pd.img);pd.img=URL.createObjectURL(f);}catch(e){}renderAgent();toast('Photo added to the draft. It stays on this device.');});
 
 // --- the agent panel (Pickup, Delivery, Owner, Receiving, Agents) and the buttons shared by every Ops panel ---
-function agentSub(k){const S=STATS;if(k==='printer')return 'Packing table · Label printer and Office printer';return k==='driver'?rmSub():k==='pickup'?`${plural(pickupBoxes(),'box')} to load · van leaves ${VAN.leaves}`:k==='deliver'?`${plural((state.van||[]).filter(o=>!o.delivered).length,'stop')} left · ${(state.van||[]).filter(o=>o.delivered).length} delivered`:k==='owner'?'Money, orders and time · sample day'
+function agentSub(k){const S=STATS;if(k==='hours'){const n=HR.staff.filter(s=>hrOpen(s.id)).length;return `${n} of ${HR.staff.length} working now · week of ${hrWeekTxt()}`;}if(k==='printer')return 'Packing table · Label printer and Office printer';return k==='driver'?rmSub():k==='pickup'?`${plural(pickupBoxes(),'box')} to load · van leaves ${VAN.leaves}`:k==='deliver'?`${plural((state.van||[]).filter(o=>!o.delivered).length,'stop')} left · ${(state.van||[]).filter(o=>o.delivered).length} delivered`:k==='owner'?'Money, orders and time · sample day'
   :k==='recv'?(S.recv?`${plural(S.recv,'case')} waiting to be sorted`:state.po&&state.po.done?'Nothing waiting to be sorted':`PO ${PO.no} from ${PO.from} expected today`)+(newAsk().length?` · ${plural(newAsk().length,'new wine')} to decide`:''):k==='product'?'Preview · nothing is sent to Shopify':k==='email'?(emBusy?'Writing…':emSubject()?'One email on the desk · nothing sent':'Writes the email and its code · nothing sent'):'Your agents, reached from the office desk';}
 // the office desk in the small warehouse: the place where the owner reaches every agent
 function deskCam(){if(walk||route)return;const k=phone()?1.6:1,t=[SX+5.2,2,SZ+35.8],p=wallsFull?[SX+14,18,SZ+20.5]:[SX+15.5,13,SZ+49];clearBeacon();fly(p.map((x,i)=>t[i]+(x-t[i])*k),t,700);viewBtns().forEach(b=>b.classList.remove('on'));}
@@ -3679,7 +3758,7 @@ function openDesk(){openAgent('team');deskCam();}
 function openAgent(kind,full){const f=wantFull(full);agentKind=AGT[kind]?kind:'team';hideRight('agent');opsBack=null;dropSel();renderAgent();$('agent').hidden=false;$('aBody').scrollTop=0;setFull(f);syncNav();}
 function renderAgent(){const k=agentKind,keep={};$('aTitle').textContent=AGT[k];$('aSub').textContent=agentSub(k);$('aBack').hidden=!(k==='product'||k==='email'||k==='printer');
   $('aBody').querySelectorAll('input[id],select[id],textarea[id]').forEach(e=>keep[e.id]=e.value);
-  $('aBody').innerHTML=({pickup:pickupHtml,deliver:deliverHtml,owner:ownerHtml,recv:()=>recvHtml(false),team:teamHtml,product:productHtml,email:emailHtml,driver:rmHtml,printer:printerHtml})[k]();
+  $('aBody').innerHTML=({pickup:pickupHtml,deliver:deliverHtml,owner:ownerHtml,hours:hoursHtml,recv:()=>recvHtml(false),team:teamHtml,product:productHtml,email:emailHtml,driver:rmHtml,printer:printerHtml})[k]();
   Object.keys(keep).forEach(id=>{const e=$(id);if(e&&[...(e.options||[{value:keep[id]}])].some(o=>o.value===keep[id]))e.value=keep[id];});
   if(k==='email')emMount();if(k==='driver')drvAfter();}
 const tell=(r,chips)=>{if(elkaOpen)say(r.text,r.ok?(chips||[chipUndo()]):[]);else toast(r.toast||r.text);};
@@ -3688,6 +3767,7 @@ function opsAction(b){const D=b.dataset;
   if(D.agent){openAgent(D.agent);return true;}
   if(D.prdoc){if(!printDoc(D.prdoc))toast('Nothing to print for that right now.');return true;}
   if(D.prcam){if(walk)toast('The printer is on the packing table in the small warehouse');else{setFull(false);printerCam();if(phone())closeOps();}return true;}
+  if(D.hr){hrAct(D.hr,D.n||'');return true;}
   if(D.dv){drvAct(D.dv,D.n||'');return true;}
   if(D.rm!=null){rmAct(D.rm,D.id||'',b);return true;}
   if(D.say){if(!elkaOpen)openElka(true);elkaSend(D.say);return true;}
@@ -3919,7 +3999,7 @@ function agentAsk(g){if(!g)return agentReply('team');
   if(g.k==='restock'){openOps('restock');return{text:`The restock agent keeps the list of what the shop needs. It is open, with ${g.now()}.`};}
   if(g.k==='email')return agentReply('email');
   if(g.k==='texts'){drvAct('cust','',phone());return{text:'Customer texts go out on their own: when the order is packed, when the van leaves with a page to follow it, and at the door with the photo. '+(phone()?'The page the customer sees is in the Driver app tab.':'I opened the page the customer sees, in the driver app.')+' This preview sends no texts.',chips:phone()?[{label:'Open the driver app',run:()=>openOps('driver')}]:[]};}
-  if(g.k==='hours'){if(!phone())openOps('owner');return{text:`Hours today: ${g.now()}. The driver clocks in and out on the driver app, or you can tell me “clock in” and “clock out”. The hours show on the owner screen.`,chips:[{label:'Open the driver app',run:()=>openOps('driver')}]};}
+  if(g.k==='hours'){if(!phone())openOps('hours');const R=hrRows(),t=R.reduce((a,r)=>a+r.tot,0);return{text:`Working now: ${hrNowTxt()}. This week so far: ${R.filter(r=>r.tot).map(r=>`${r.s.name} ${hrDur(r.tot)}`).join(', ')||'no hours yet'}, ${hrDur(t)} in all. Say “clock in” and a name, like “clock in Avi”.`,chips:[{label:'Download the timesheet',run:()=>hrCsv()},{label:'Print the timesheet',run:()=>prOpen(`Timesheet · week of ${hrWeekTxt()}`,hrDoc(),'Office printer')}]};}
   agentOpen(g);return{text:`${g.n}: ${g.now()}.`};}
 // the product upload agent, by voice or text: fields are filled as they are said
 const PFN={n:'name',p:'price',c:'cases',t:'type',z:'section'};
@@ -4200,6 +4280,8 @@ function parseLocal(raw){const t=norm(raw).replace(/^(hey|hi|ok|okay|yo)\s+(elka
   if(/\b(show|open|see|list)\b.*\b(all|every|today'?s) (the )?deliver(y|ies)\b|^(all )?(the )?deliveries$/.test(t)){out.intent='rm';out.view='deliveries';return out;}
   // the driver app preview, and the driver's clock
   if(/\bdrivers? (app|phone|screen|view|preview|side|section)\b|\bwhat (does |would |will |do )?(the |our |a )?drivers? (sees?|would see|will see)\b|\bdriver preview\b/.test(t)){out.intent='agent';out.kind='driver';return out;}
+  if(/\bwho('?s| is| are)( \w+)? (working|on shift|clocked in|here today|in today)\b|\b(employee|staff|team|worker)s?'? hours\b|\bhours (this|last) week\b|\b(open |show )(the |my )?(hours|timesheets?)\b/.test(t)){out.intent='agentx';out.k='hours';return out;}
+  {const w=/\b(clock(ed)?|sign(ed)?) ([a-z']+ )?(in|out)\b|\b(start|end)s? (his|her|their) shift\b/.test(t)&&hrFind(t);if(w&&w.id!==HR_DRV&&!/\b(hours|payroll|timesheets?|how)\b/.test(t)){out.intent='hrclock';out.who=w.id;out.dir=/\bout\b|\bend/.test(t)?'out':'in';return out;}}
   if(/\bclock (me |us |him |her |danny |the driver )?(in|out)\b|\b(start|end) (my|the) shift\b/.test(t)&&!/\b(hours|payroll|timesheets?|how)\b/.test(t)){out.intent='clock';out.dir=/\bout\b|\bend\b/.test(t)?'out':'in';return out;}
   // the other sections
   if(/\bpick ?up\b.*\b(driver|van|section|tab|screen)\b|\bdriver pick ?up\b|\b(boxes|stuff|orders?) for the (van|driver|route)\b|\b(going|goes) (on|in) the van\b|\bvan (run|load|orders)\b|^(open |show |go to )?(the )?(driver )?pick ?up$/.test(t)){out.intent='agent';out.kind='pickup';return out;}
@@ -4316,8 +4398,9 @@ function runLocal(p){if(p.intent!=='email'&&p.intent!=='emailundo')emTalk=false;
       if(p.per)ask.forEach(e=>{e.per=p.per;});
       if(p.act==='go'){const r=shqUpdate('all');say(r.text,r.ok?[chipUndo()]:[]);return;}
       if(!$('agent').hidden)renderAgent();pending={need:'shq'};say(shqAskText(),shqChips());return;}
-    case'clock':{if(p.dir==='in'){if(drv.on){say(`${VAN.driver} is already clocked in, since ${drv.inAt}.`,[{label:'Open the driver app',run:()=>openOps('driver')}]);return;}drvAct('in','',phone());say(`${VAN.driver} is clocked in at ${drv.inAt}. The hours show on the owner screen.`,[{label:'Open the driver app',run:()=>openOps('driver')}]);return;}
-      if(!drv.on){say('Nobody is clocked in on the driver app right now.');return;}drvAct('out','',phone());say(drv.on?'There are returned boxes to scan before clocking out. They are on the End of shift screen of the driver app.':`${VAN.driver} is clocked out. ${drv.hours} hours today, sent to the owner screen.`);return;}
+    case'hrclock':{const x=hrWho(p.who),was=hrOpen(p.who);if(p.dir==='in'?was:!was){say(p.dir==='in'?`${x.name} is already on shift, since ${hrT(was.a)}.`:`${x.name} is not clocked in.`,[{label:'Open Employee hours',run:()=>openOps('hours')}]);return;}hrClock(p.who,p.dir);hrRefresh();say(p.dir==='in'?`${x.name} is clocked in at ${clock()}.`:`${x.name} is clocked out. ${hrDur(hrDayMs(p.who,hrDay(Date.now()),Date.now()))} hours today.`,[{label:'Open Employee hours',run:()=>openOps('hours')}]);return;}
+    case'clock':{if(p.dir==='in'){if(drv.on){say(`${VAN.driver} is already clocked in, since ${drv.inAt}.`,[{label:'Open the driver app',run:()=>openOps('driver')}]);return;}drvAct('in','',phone());say(`${VAN.driver} is clocked in at ${drv.inAt}. The hours show in Employee hours.`,[{label:'Open the driver app',run:()=>openOps('driver')}]);return;}
+      if(!drv.on){say('Nobody is clocked in on the driver app right now.');return;}drvAct('out','',phone());say(drv.on?'There are returned boxes to scan before clocking out. They are on the End of shift screen of the driver app.':`${VAN.driver} is clocked out. ${drv.hours} hours today, saved in Employee hours.`);return;}
     case'ops':openOps(p.tab);say(curTab()==='today'?feedText():`I opened ${TABN[curTab()]||'Ops'}.`);return;
     case'view':
       if(p.view==='walk'){if(!walk)enterWalk();say('Walk mode is on. Move with W A S D or the stick, and press Escape to leave.');return;}
