@@ -1428,7 +1428,7 @@ const bottleColor=WINES.map((w,k)=>{const c=wineColor[k].clone();if(w.t==='red')
    Small warehouse: 32 × 40 ft, on the right of the big warehouse with a 5 ft passage between them, flush with the front.
    Its front wall has a garage door across the open part; the entry door is on the passage side, right by the office entrance. ---------- */
 const W_=48, L_=79, ALC={x0:23.5,x1:48,z0:-8.75};
-const SW=32, SL=40, GAP=5, SX=W_+GAP, SZ=L_-SL, SDOOR={z0:23,z1:26.5}, SGAR={x0:13.9,x1:31.5}, YARD=36, ODOOR={x0:6.4,x1:9.9}, BDOOR={x0:24.7,x1:28.2};   // ODOOR: office door, in the office wall that faces the shelves. BDOOR: bathroom door, in the bathroom wall that faces the garage door.
+const SW=32, SL=40, GAP=5, SX=W_+GAP, SZ=L_-SL, SDOOR={z0:23,z1:26.5}, SGAR={x0:13.9,x1:31.5}, YARD=36, ODOOR={x0:6.4,x1:9.9},FDOOR={x0:6.8,x1:10.2}, BDOOR={x0:24.7,x1:28.2};   // ODOOR: office door, in the office wall that faces the shelves. BDOOR: bathroom door, in the bathroom wall that faces the garage door.
 const CASE={w:1.04,d:0.83,h:1.08};
 const RACK={depth:4,bay:8,beams:[5.6,11.1],top:16.2};
 const SHELF={depth:2,levels:[1.5,3.25],top:5.1};       // shop racking: same green + orange style, smaller
@@ -1651,7 +1651,8 @@ box(6.6,4.6,0.1,M(0x9aa3a8,{metalness:.5}),15.25,3.3,4.3,false,false);
 wall(SX,SZ,SX+SW,SZ,12); wall(SX+SW,SZ,SX+SW,L_,12);
 wall(SX,SZ,SX,SZ+SDOOR.z0,12); wall(SX,SZ+SDOOR.z1,SX,L_,12); lintel(SX,SZ+SDOOR.z0,SX,SZ+SDOOR.z1,12,7.5);   // passage-side wall with the entry door by the office
 doorSlab(SX+0.2,SZ+SDOOR.z1+0.12,SX+3.6,SZ+SDOOR.z1+0.12,7,0x6b1d2f);                                      // door standing open against the office wall
-wall(SX,L_,SX+SGAR.x0,L_,12); wall(SX+SGAR.x1,L_,SX+SW,L_,12); lintel(SX+SGAR.x0,L_,SX+SGAR.x1,L_,12,10);
+wall(SX,L_,SX+FDOOR.x0,L_,12); wall(SX+FDOOR.x1,L_,SX+SGAR.x0,L_,12); lintel(SX+FDOOR.x0,L_,SX+FDOOR.x1,L_,12,7.5); swingDoor(SX+FDOOR.x0,L_,FDOOR.x1-FDOOR.x0,7,Math.PI*0.42);   // office front door, to the outside, standing open into the office
+wall(SX+SGAR.x1,L_,SX+SW,L_,12); lintel(SX+SGAR.x0,L_,SX+SGAR.x1,L_,12,10);
 doorSlab(SX+SGAR.x0,L_+0.3,SX+SGAR.x1,L_+0.3,10,0xc7ccd0,true);                                           // garage door across the open part of the front wall
 wall(SX+20,SZ,SX+20,SZ+5.9,9); wall(SX+20,SZ+5.9,SX+BDOOR.x0,SZ+5.9,9); wall(SX+BDOOR.x1,SZ+5.9,SX+32,SZ+5.9,9); lintel(SX+BDOOR.x0,SZ+5.9,SX+BDOOR.x1,SZ+5.9,9,7);   // bathroom: the entrance is in the wall that faces the garage door
 swingDoor(SX+BDOOR.x1,SZ+5.9,BDOOR.x1-BDOOR.x0,7,Math.PI*0.555);                                          // bathroom door, hinged on the toilet side, standing open inwards
