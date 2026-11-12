@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="favicon.png">
 <style id="gateCss">[hidden]{display:none!important}html.locked body>*:not(#elkGate){display:none!important}#elkGate{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:#14110f;font:16px system-ui,sans-serif;color:#f4efe9}#elkGate form{width:min(340px,calc(100% - 32px));display:flex;flex-direction:column;gap:12px}#elkGate input,#elkGate button{font:inherit;padding:12px 14px;border-radius:10px;border:1px solid #4a403a;background:#221d1a;color:inherit}#elkGate button{background:#8c2f39;border-color:#8c2f39;cursor:pointer}#elkGate .err{color:#f19a9a;min-height:1.2em;font-size:14px}</style>
 <script>
 /* Standalone build for ops.expandiasolutions.ai: light password screen + browser speech in place of Claude-only capabilities. */
@@ -1462,7 +1464,7 @@ shelfUnits.forEach(u=>{const n=u.sections||1;
     const along=(u.x1-u.x0)>(u.z1-u.z0);
     const sx0=along?u.x0+(u.x1-u.x0)*s/n:u.x0, sx1=along?u.x0+(u.x1-u.x0)*(s+1)/n:u.x1;
     const sec=n>1?String.fromCharCode(97+s):'';
-    addLoc({id:`${u.id}-${lv+1}${sec}`,kind:'shelf',area:'Small shelves',where:`Big warehouse · Small shelf ${u.id.slice(1)} · Shelf ${lv+1}${n>1?' · section '+sec.toUpperCase():''}`,
+    addLoc({id:`${u.id}-${lv+1}${sec}`,kind:'shelf',area:'Vintage area',where:`Big warehouse · Vintage area shelf ${u.id.slice(1)} · Shelf ${lv+1}${n>1?' · section '+sec.toUpperCase():''}`,
       x:(sx0+sx1)/2,y:SH_LEVELS[lv]+0.05,z:(u.z0+u.z1)/2,w:sx1-sx0-0.15,d:u.z1-u.z0-0.15,h:1.15,pallet:false,group:'shelves'});
   }});
 // Receiving: just inside the garage door. A delivery waits here until someone puts it away and says where.
@@ -1733,8 +1735,8 @@ function makeLabels(){labels.forEach(s=>scene.remove(s));labels.length=0;flyName
   flyNames.push(L('Big warehouse',24,25,30,2.8,{bg:'#6b1d2f',fg:'#fff'}),L('Small warehouse',SX+16,16,SZ+3,2.6,{bg:'#6b1d2f',fg:'#fff'}));
   walkNames.push(L('Big warehouse',32.5,15.4,L_+0.6,1.7,{bg:'#6b1d2f',fg:'#fff'}),L('Small warehouse',SX+(SGAR.x0+SGAR.x1)/2,13.4,L_+0.6,1.7,{bg:'#6b1d2f',fg:'#fff'}),L('Entrance',W_+GAP/2,8.8,SZ+SDOOR.z1+2.5,1.1,{bg:'#6b1d2f',fg:'#fff'}));
   L('Receiving · to be sorted',33.2,5.4,74.4,1.05,{bg:'#8a6a30',fg:'#fff'});
-  L('Rack A',2.4,18,56,2); L('Rack B',45.6,18,46.5,2); L('Middle row',24.5,7.5,54,1.7); L('Small shelves',9,8.2,13.5,1.7);
-  L('Bathroom',6.4,10.5,28.4,1.5); L('AC unit',15.25,7.4,2.5,1.3); L('Door',8.85,8.4,L_+0.8,1.3); L('Garage door',32.5,13.6,L_+0.8,1.6);
+  L('Rack A',2.4,18,56,2); L('Rack B',45.6,18,46.5,2); L('Middle row',24.5,7.5,54,1.7); L('Vintage area',9,8.2,13.5,1.7);
+  L('Bathroom',6.4,10.5,28.4,1.5); L('AC unit',15.25,7.4,2.5,1.3); L('Door',8.85,8.4,L_+0.8,1.3); 
   L('Door 1',33.5,8.4,ALC.z0-0.8,1.3); L('Open to main room',35.8,1.2,-3.6,1,{bg:'rgba(255,255,255,.6)'});
   for(let b=0;b<5;b++) L('A'+String(b+1).padStart(2,'0'),4.7,RACK.top+0.9,36+b*RACK.bay+4,0.95,{bg:'#e0661e',fg:'#fff'});
   for(let b=0;b<8;b++) L('B'+String(b+1).padStart(2,'0'),W_-4.7,RACK.top+0.9,14.5+b*RACK.bay+4,0.95,{bg:'#e0661e',fg:'#fff'});
@@ -1744,7 +1746,7 @@ function makeLabels(){labels.forEach(s=>scene.remove(s));labels.length=0;flyName
   UNITS.forEach(u=>{const xc=SX+u.x+SHELF.depth/2,fx=u.face>0?SX+u.x+SHELF.depth+0.12:SX+u.x-0.12;
     L(u.name,xc+u.face*1.7,SHELF.top+1.9,SZ+u.z0+u.bays*u.bay/2,0.8,{bg:u.ship?'#8a6a30':'#1f6b4a',fg:'#fff'});
     for(let b=0;b<u.bays;b++) L(u.k+(b+1),fx,SHELF.top-0.32,SZ+u.z0+(b+0.5)*u.bay,0.34,{bg:'#e0661e',fg:'#fff'});});
-  L('Bathroom',SX+26,10.3,SZ+2.95,1.2); L('Office',SX+6.2,10.3,SZ+34,1.4); L('Agents desk',SX+4.7,5.7,SZ+36.5,0.9,{bg:'#6b1d2f',fg:'#fff'}); L('Packaging table',SX+15.85,5.6,SZ+30.5,1.05); L('Door',SX-0.4,8.4,SZ+(SDOOR.z0+SDOOR.z1)/2,1.2); L('Garage door',SX+(SGAR.x0+SGAR.x1)/2,11.2,L_+0.8,1.3);
+  L('Bathroom',SX+26,10.3,SZ+2.95,1.2); L('Office',SX+6.2,10.3,SZ+34,1.4); L('Agents desk',SX+4.7,5.7,SZ+36.5,0.9,{bg:'#6b1d2f',fg:'#fff'}); L('Packaging table',SX+15.85,5.6,SZ+30.5,1.05); L('Door',SX-0.4,8.4,SZ+(SDOOR.z0+SDOOR.z1)/2,1.2); 
   labelMode();
 }
 function labelMode(){flyNames.forEach(s=>s.visible=!walk);walkNames.forEach(s=>s.visible=!!walk);
@@ -4336,9 +4338,9 @@ function elkaTools(ctx){const T=[
 function elkaRules(){const S=STATS,nx=nextOrder(),ro=route&&orderByNo(route.no),cur=curTab();
   return `You are Elka, the voice of Elk Ops, the one app the Elk wine business runs on. You live on a screen in the ${WHN[screenAt].toUpperCase()}. The main view is a 3D map of both warehouses. The Ops section opens beside the map with these tabs: Today, Orders, Pickup, Delivery, Owner, Receiving, Restock, Agents. Staff talk to you, often by voice, while they work, so every reply is read aloud. You can do everything staff do on this screen except the physical work.
 
-The business has two buildings side by side. The BIG warehouse holds backstock: cases of 12 on pallets in Rack A, Rack B and the middle row, plus small grey shelves, and a receiving area by the garage door where a delivery waits to be sorted. The SMALL warehouse is the shop where customers buy: single bottles on shelves in rows, spare bottles in boxes under the shelves, a packing table and the ready-to-ship shelves.
+The business has two buildings side by side. The BIG warehouse holds backstock: cases of 12 on pallets in Rack A, Rack B and the middle row, plus the vintage area (small grey shelves where the vintage wines are), and a receiving area by the garage door where a delivery waits to be sorted. The SMALL warehouse is the shop where customers buy: single bottles on shelves in rows, spare bottles in boxes under the shelves, a packing table and the ready-to-ship shelves.
 
-Location codes: A03-1b is Rack A, bay 3, level 1, position b. B is Rack B. M04-a is the middle row. S3-2 is a grey shelf. RECV is the receiving area. In the small warehouse IS3-2 is the Israeli rack, section 3, shelf 2 (top) and IS3-0 is the boxes under that section. Rack prefixes: IS Israeli, CE California + Elk, CA California, SI Spanish + Italian, FA and FB French, RO Rosé, WH Whites, SH ready to ship.
+Location codes: A03-1b is Rack A, bay 3, level 1, position b. B is Rack B. M04-a is the middle row. S3-2 is a shelf in the vintage area. RECV is the receiving area. In the small warehouse IS3-2 is the Israeli rack, section 3, shelf 2 (top) and IS3-0 is the boxes under that section. Rack prefixes: IS Israeli, CE California + Elk, CA California, SI Spanish + Italian, FA and FB French, RO Rosé, WH Whites, SH ready to ship.
 
 How to work:
 - Use the tools for every fact and every change. Never guess stock, locations, orders or prices, and never say you changed something unless the tool call succeeded.
