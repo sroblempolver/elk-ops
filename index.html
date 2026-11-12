@@ -544,6 +544,8 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;color:var(--ink);ba
 body.elka-open #joy{display:none!important}
 
 @media print{body>*:not(#print){display:none!important}#print{position:static!important;background:none!important;padding:0!important;overflow:visible!important}#print .pbar{display:none!important}.paper{box-shadow:none!important;margin:0 auto!important;border-radius:0!important;page-break-after:always;break-after:page}html,body{background:#fff!important;overflow:visible!important;height:auto!important}}
+.pb>.rkcols{grid-column:1/-1}.rkcols{display:grid;grid-template-columns:minmax(280px,400px) minmax(0,1fr);gap:16px;align-items:start}@container (max-width:720px){.rkcols{grid-template-columns:1fr}}.rkfind:first-child{margin-top:0}
+.rkpm{display:inline-flex;gap:4px}.rkpm .sm{min-width:34px;padding-left:0;padding-right:0;justify-content:center}.rkacts{margin-top:4px}.rkform{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}.rkform label{display:grid;gap:4px;font-size:13px;color:var(--muted)}.rkform select,.rkform input{font:inherit;color:var(--ink);padding:7px 8px;min-width:0}.rkfind{margin:12px 0 6px}.rkfind input{width:100%;font:inherit;padding:9px 12px;border-radius:10px;border:1px solid var(--line-2,var(--line));background:var(--surface)}.rkg{border-top:1px solid var(--line);padding:4px 0}.rkg summary{cursor:pointer;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 2px;list-style:none}.rkg summary::-webkit-details-marker{display:none}.rkg summary b::before{content:'▸ ';color:var(--muted)}.rkg[open] summary b::before{content:'▾ '}.rkrow{display:flex;gap:10px;align-items:center;padding:8px 2px;border-top:1px solid var(--line)}.rkbar{height:4px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-top:5px;max-width:260px}.rkbar i{display:block;height:100%;background:var(--accent)}
 .hrsh{flex-wrap:wrap;align-items:center}.hrsh>span:first-child{flex:1 1 150px}.hrtab{overflow-x:auto;margin:4px 0 8px}.hrtab table{width:100%;border-collapse:collapse;font-size:13.5px}.hrtab th,.hrtab td{padding:6px 6px;border-top:1px solid var(--line);text-align:left;white-space:nowrap}.hrtab th{font-weight:600;color:var(--muted);font-size:12px}.hrtab .r{text-align:right}.hrtab .cur{background:var(--panel-2,rgba(0,0,0,.04))}.hrtm{width:96px;font:inherit;font-size:13px;padding:3px 4px}.hrrate{width:64px;font:inherit;font-size:13px;padding:3px 6px}.hrform{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:8px 0}.hrform input,.hrform select{font:inherit;padding:6px 8px}
 .rcgrid{display:grid;grid-template-columns:auto minmax(0,1fr) auto 64px auto;gap:8px 10px;align-items:center;margin:10px 0;font-size:14px}.rcgrid .r{text-align:right}.rcck input{width:20px;height:20px;accent-color:#8c2f39}.rcgot{width:64px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;font:inherit;background:var(--card,#fff);color:inherit;box-sizing:border-box}.rcgot:disabled{opacity:.45}
 .prsws{display:grid;gap:8px;margin-bottom:6px}.prsw{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}.prsw input{width:18px;height:18px;accent-color:var(--accent,#8c2f39)}
@@ -741,7 +743,7 @@ body.elka-open #joy{display:none!important}
   <div id="prBody"></div>
 </div>
 
-<div id="banner" class="ui glass" hidden><span class="pulse"></span><span id="bannerTxt"></span><button class="sm" id="bannerCancel">Cancel</button></div>
+<div id="banner" class="ui glass" hidden><span class="pulse"></span><span id="bannerTxt"></span><button class="sm primary" id="bannerOk" hidden>Move here</button><button class="sm" id="bannerAlt" hidden>Pick another spot</button><button class="sm" id="bannerUndo" hidden>Undo</button><button class="sm" id="bannerCancel">Cancel</button></div>
 <div id="tip" hidden></div>
 <div id="walkhud" class="ui glass walkonly">
   <canvas id="map" title="Click the map to jump there"></canvas>
@@ -1890,7 +1892,7 @@ function changed(){reindex();syncRoute();repaint();if(sel){fitBox(selBox,sel);fi
 
 // outlines for hover / selection
 function outline(color){const g=new THREE.EdgesGeometry(new THREE.BoxGeometry(1,1,1));const m=new THREE.LineSegments(g,new THREE.LineBasicMaterial({color,depthTest:false,transparent:true}));m.renderOrder=10;m.visible=false;scene.add(m);return m;}
-const hoverBox=outline(0xc9a15a), selBox=outline(0xa8303f);
+const hoverBox=outline(0xc9a15a), selBox=outline(0xa8303f), tgtBox=outline(0x1f8a4c);
 const secBox=outline(0x2b1d17),secBox2=outline(0x2b1d17),secBox3=outline(0xffffff);secBox3.material.opacity=.9;
 const secFill=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshBasicMaterial({color:0x2b1d17,transparent:true,opacity:.06,depthWrite:false}));secFill.visible=false;scene.add(secFill);
 const secParts=[secBox,secBox2,secBox3,secFill];
@@ -1898,6 +1900,7 @@ function secShow(v){secParts.forEach(o=>o.visible=v);}
 function fitSec(S){const c=[(S.x0+S.x1)/2,(S.y0+S.y1)/2,(S.z0+S.z1)/2],w=S.x1-S.x0,h=S.y1-S.y0,d=S.z1-S.z0;
   [[secBox,0.5],[secBox2,0.62],[secBox3,0.38],[secFill,0.5]].forEach(([o,k])=>{o.position.set(...c);o.scale.set(w+k,h+k*0.8,d+k);});secShow(true);}
 const selFill=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshBasicMaterial({color:0xa8303f,transparent:true,opacity:.14,depthWrite:false}));selFill.visible=false;scene.add(selFill);
+const tgtFill=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshBasicMaterial({color:0x1f8a4c,transparent:true,opacity:.42,depthWrite:false}));tgtFill.visible=false;scene.add(tgtFill);
 function fitBox(o,l){const h=Math.max(l.hitH,stackH(l));o.position.set(l.x,l.y+h/2,l.z);o.scale.set(l.w+0.25,h+0.15,l.d+0.25);o.visible=true;}
 function stackH(l){if(!isCases(l))return l.hitH;const n=used(l)+(l.kind==='recv'?npCases():0);if(!n)return l.pallet?0.6:0.4;return (l.pallet?0.42:0.06)+Math.ceil(n/(l.cols*l.rows))*CASE.h;}
 
@@ -2009,7 +2012,7 @@ renderer.domElement.addEventListener('pointerdown',e=>{down={x:e.clientX,y:e.cli
   if(walk){lookId=e.pointerId;lookPrev={x:e.clientX,y:e.clientY};try{renderer.domElement.setPointerCapture(e.pointerId);}catch(_){}}});
 ['pointerup','pointercancel'].forEach(t=>renderer.domElement.addEventListener(t,e=>{if(lookId===e.pointerId){lookId=null;lookPrev=null;}}));
 renderer.domElement.addEventListener('pointerup',e=>{if(!down||Math.hypot(e.clientX-down.x,e.clientY-down.y)>6){down=null;return;}down=null;
-  const l=pick(e);if(moveCtx){if(l)finishMove(l);return;} if(l&&l.desk){openDesk();return;}if(l&&l.printer){openPrinter();return;}
+  const l=pick(e);if(moveCtx){if(l)moveAsk(l);return;} if(l&&l.desk){openDesk();return;}if(l&&l.printer){openPrinter();return;}
   const S=l?l.sec:raySec();if(S&&!walk)zoomSec(S); select(l||null);});
 
 /* ---------- Detail panel ---------- */
@@ -2026,10 +2029,10 @@ function panelCases(l){const n=used(l),pct=Math.round(n/l.cap*100);
   if(!l.items.length)h+=`<div class="empty">Nothing here yet. Move a pallet in, or receive new cases.</div>`;
   else{h+=`<div class="sec">Wines on this ${l.pallet?'pallet':'shelf'}</div>`;
     [...l.items].sort((a,b)=>b.c-a.c).forEach(it=>{const w=WINES[it.w],t=TYPES[w.t],d=IDX[it.w],need=RANK[d.status]!=null;
-      h+=`<div class="wine${need?' need':''}${it.w===findWine||it.w===hlWine?' hit':''}"><div class="top"><span class="dot" style="background:${t.c};margin-top:4px"></span><div style="min-width:0"><div class="nm">${esc(w.n)}</div><div class="meta">${t.label} · $${w.p}/btl · ${fmt(it.c*BPC+(it.b||0))} btl${it.b?` (${it.b} loose from an opened case)`:''} · $${fmt((it.c*BPC+(it.b||0))*w.p)} retail</div></div><div class="qty"><b>${it.c}</b><div class="meta">cases</div></div></div><div class="acts">${shopLine(it.w)}</div>`;
+      h+=`<div class="wine${need?' need':''}${it.w===findWine||it.w===hlWine?' hit':''}"><div class="top"><span class="dot" style="background:${t.c};margin-top:4px"></span><div style="min-width:0"><div class="nm">${esc(w.n)}</div><div class="meta">${t.label} · $${w.p}/btl · ${fmt(it.c*BPC+(it.b||0))} btl${it.b?` (${it.b} loose from an opened case)`:''} · $${fmt((it.c*BPC+(it.b||0))*w.p)} retail</div></div><div class="qty"><b>${it.c}</b><div class="meta">cases</div></div></div><div class="acts">${shopLine(it.w)}<span class="rkpm" style="margin-left:auto"><button class="sm" data-rk="cminus" data-l="${l.id}" data-w="${it.w}" aria-label="One case less"${it.c?'':' disabled'}>−</button><button class="sm" data-rk="cplus" data-l="${l.id}" data-w="${it.w}" aria-label="One case more">+</button></span></div>`;
       if(openX===it.w){h+=`<div class="xfer"><label>How many cases?<div class="line"><input type="number" id="xq" min="1" max="${it.c}" value="${Math.min(it.c,Math.max(1,Math.round(it.c/2)))}"><button class="sm" data-all="${it.c}">All ${it.c}</button></div></label>
-        <label>Send to<select id="xd"><option value="spot">Another spot here (pick it in 3D)</option><option value="out">Picked for orders (remove)</option></select></label>
-        <div class="line"><button class="primary sm" data-go="${it.w}">Confirm</button><button class="sm ghost" data-cancel>Cancel</button></div></div>`;}
+        <label>Send to<select id="xd"><option value="spot">Another spot (you pick it in 3D, then confirm)</option><option value="out">Picked for orders (remove)</option></select></label>
+        <div class="line"><button class="primary sm" data-xgo="${it.w}">Next</button><button class="sm ghost" data-cancel>Cancel</button></div></div>`;}
       else if(it.c>0)h+=`<div class="acts"><button class="sm${need?' primary':''}" data-send="${it.w}">Send 1 case to the shop</button><button class="sm" data-x="${it.w}">Move…</button><button class="sm ghost" data-find="${it.w}">Find all</button></div>`;
       h+=`</div>`;});}
   h+=`<div class="sec">${l.pallet?'Pallet':'Shelf'} actions</div><div class="pacts">`;
@@ -2040,7 +2043,7 @@ function panelCases(l){const n=used(l),pct=Math.round(n/l.cap*100);
 function panelShop(l){const tot=l.items.reduce((a,i)=>a+(i.w>=0?i.b:0),0),cap=LANES*LANE_CAP,pct=Math.round(tot/cap*100);
   let h=`<div class="fill"><div class="row"><span>${plural(tot,'bottle')} on this shelf</span><span>${pct}% of ${cap}</span></div><div class="bar"><i style="width:${pct}%"></i></div></div><div class="sec">Rows, left to right as you face the shelf</div>`;
   l.items.forEach((it,k)=>{
-    if(it.w<0){h+=`<div class="wine lane"><div class="top"><span class="ln">${k+1}</span><div class="nm" style="color:var(--muted);font-weight:500">Free row</div></div></div>`;return;}
+    if(it.w<0){h+=`<div class="wine lane"><div class="top"><span class="ln">${k+1}</span><div class="nm" style="color:var(--muted);font-weight:500;flex:1">Free row</div>${rkEd&&rkEd.l===l.id&&rkEd.k===k?'':rkRowBtns(l,k)}</div>${rkRowEd(l,k)}</div>`;return;}
     const w=WINES[it.w],d=IDX[it.w],st=d.status==='out'?'out':(d.status==='low'||it.b===0)?'low':'ok',full=d.lanes.every(x=>x.l.items[x.k].b>=LANE_CAP);
     h+=`<div class="wine lane ${st}${it.w===findWine||it.w===hlWine?' hit':''}"><div class="top"><span class="ln">${k+1}</span><div style="min-width:0;flex:1"><div class="nm">${esc(w.n)}</div><div class="meta">$${w.p} · ${backLine(d)}</div></div><div class="qty">${pips(it.b,st)}<div class="meta">${it.b} of ${LANE_CAP}</div></div></div><div class="acts">`;
     if(d.status==='out')h+=`<span class="pill out">Out</span>`;else if(d.status==='low')h+=`<span class="pill low">Low</span>`;
@@ -2049,7 +2052,7 @@ function panelShop(l){const tot=l.items.reduce((a,i)=>a+(i.w>=0?i.b:0),0),cap=LA
       else if(d.bigC)h+=`<button class="sm${st!=='ok'?' primary':''}" data-bring="${it.w}">Bring a case from ${d.big[0].l.id}</button>`;
       else if(st!=='ok')h+=`<span class="pill out">No backstock, reorder</span>`;}
     if(d.bigC)h+=`<button class="sm ghost" data-gopal="${it.w}">Show backstock</button>`;
-    h+=`</div></div>`;});
+    h+=`</div><div class="acts rkacts">${rkRowBtns(l,k)}</div>${rkRowEd(l,k)}</div>`;});
   return h;}
 function panelUnder(l){let h=`<div class="sec">Boxes under this shelf</div>`;
   if(!l.items.length)return h+`<div class="empty">No boxes here. When a case comes over and the shelf row is full, the extra bottles wait here.</div>`;
@@ -2082,7 +2085,7 @@ $('pBody').addEventListener('click',e=>{const b=e.target.closest('button');if(!b
   if(b.hasAttribute('data-cancel')){openX=-1;renderPanel();return;}
   if(b.dataset.all){$('xq').value=b.dataset.all;return;}
   if(b.dataset.find){const w=WINES[+b.dataset.find];$('find').value=w.n;runFind();return;}
-  if(b.dataset.go){const w=+b.dataset.go;const it=l.items.find(i=>i.w===w);if(!it)return;const q=Math.max(1,Math.min(it.c,parseInt($('xq').value)||0));
+  if(b.dataset.xgo){const w=+b.dataset.xgo;const it=l.items.find(i=>i.w===w);if(!it)return;const q=Math.max(1,Math.min(it.c,parseInt($('xq').value)||0));
     if($('xd').value==='spot'){startMove(l,[{w,c:q}]);return;}
     takeItem(l,w,q);log(`<b>${plural(q,'case')}</b> ${esc(WINES[w].n)} picked from ${l.id}`);toast(`Removed ${plural(q,'case')} from ${l.id}`);openX=-1;changed();return;}
   const a=b.dataset.act;
@@ -2094,17 +2097,28 @@ $('pBody').addEventListener('click',e=>{const b=e.target.closest('button');if(!b
 $('pClose').onclick=()=>select(null);
 
 /* ---------- Move mode (pallets and cases inside the big warehouse) ---------- */
-function clearMove(){moveCtx=null;hits.forEach(h=>{h.userData.valid=false;h.material=hitMat;});$('banner').hidden=true;hoverBox.visible=false;}
+function clearMove(){moveCtx=null;hits.forEach(h=>{h.userData.valid=false;h.material=hitMat;});$('banner').hidden=true;hoverBox.visible=false;tgtBox.visible=false;tgtFill.visible=false;}
+// the move banner has three states: choose a spot, confirm the spot, saved
+let bnT=0;
+function banner(txt,mode){clearTimeout(bnT);const B=$('banner');B.dataset.mode=mode;$('bannerTxt').textContent=txt;$('bannerOk').hidden=mode!=='ask';$('bannerAlt').hidden=mode!=='ask';$('bannerUndo').hidden=mode!=='done';$('bannerCancel').textContent=mode==='done'?'OK':'Cancel';B.hidden=false;
+  if(mode==='done')bnT=setTimeout(()=>{if(B.dataset.mode==='done')B.hidden=true;},9000);}
+const moveWhat=()=>{const m=moveCtx;return m.items.length===1?`${plural(m.n,'case')} of ${WINES[m.items[0].w].n}`:`the whole ${m.from.pallet?'pallet':'shelf'} (${plural(m.n,'case')})`;};
+function moveStep2(){tgtBox.visible=tgtFill.visible=false;moveCtx.to=null;banner(`Step 2 of 3 · Moving ${moveWhat()} from ${moveCtx.from.id}. Click a green spot.`,'pick');}
+function moveAsk(l){if(!moveCtx)return;if(!l)return;moveCtx.to=l;fitBox(tgtBox,l);fitBox(tgtFill,l);banner(`Step 3 of 3 · Move ${moveWhat()} from ${moveCtx.from.id} to ${l.id}?`,'ask');}
+function moveConfirm(){if(!moveCtx||!moveCtx.to)return;const to=moveCtx.to,from=moveCtx.from,what=moveWhat(),before=snap();finishMove(to);pushUndo(before,`moving ${what} from ${from.id} to ${to.id}`);
+  banner(`✓ Move saved: ${what}, ${from.id} → ${to.id}.`,'done');}
 function startMove(from,items){mapWanted();const n=items.reduce((a,i)=>a+i.c,0);moveCtx={from,items,n};
   hits.forEach(h=>{const l=h.userData.loc;const ok=isCases(l)&&l.kind!=='recv'&&l!==from&&(l.cap-used(l))>=n&&(items.length>1&&from.pallet?(used(l)===0&&l.pallet):true);h.userData.valid=ok;h.material=ok?ghostMat:hitMat;});
   const cnt=hits.filter(h=>h.userData.valid).length;
-  $('bannerTxt').textContent=cnt?`Moving ${plural(n,'case')} from ${from.id}. Click a green spot.`:`No spot has room for ${plural(n,'case')}.`;$('banner').hidden=false;$('panel').hidden=true;
+  if(cnt)moveStep2();else banner(`No spot has room for ${plural(n,'case')}.`,'pick');$('panel').hidden=true;
   if(!cnt)setTimeout(cancelMove,2200);}
 function cancelMove(){if(!moveCtx)return;clearMove();if(sel)select(sel);}
 function finishMove(to){const {from,items,n}=moveCtx;items.forEach(i=>{const got=takeItem(from,i.w,i.c);if(got)addItem(to,i.w,got);
     const s=i.b>0&&from.items.find(x=>x.w===i.w);if(s&&s.b>0){if(!to.items.some(x=>x.w===i.w))to.items.push({w:i.w,c:0});const t=to.items.find(x=>x.w===i.w);t.b=(t.b||0)+s.b;s.b=0;if(!s.c)from.items.splice(from.items.indexOf(s),1);}});
-  log(`<b>${plural(n,'case')}</b> moved ${from.id} → ${to.id}`);toast(`Moved ${plural(n,'case')} to ${to.id}`);clearMove();sel=null;changed();select(to);}
-$('bannerCancel').onclick=cancelMove;
+  log(`<b>${plural(n,'case')}</b> moved ${from.id} → ${to.id}`);clearMove();sel=null;changed();select(to);}
+$('bannerCancel').onclick=()=>{if($('banner').dataset.mode==='done'){$('banner').hidden=true;return;}cancelMove();};
+$('bannerOk').onclick=moveConfirm;$('bannerAlt').onclick=()=>{if(moveCtx)moveStep2();};
+$('bannerUndo').onclick=()=>{const w=undoLast();$('banner').hidden=true;toast(w?`Undone: ${w}`:'Nothing to undo');};
 addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('print').hidden)closePrint();else if(moveCtx)cancelMove();else if(!$('views').hidden)viewMenu(false);else if(sel)select(null);else if(opsOpen())closeOps();else if(walk)exitWalk();}});
 
 /* ---------- Restock list: what the small warehouse needs, and where to take it from ---------- */
@@ -2207,7 +2221,7 @@ function centerPick(now){const pr=$('prompt');
     pr.innerHTML=l.printer?`${coarse?'':'<kbd>E</kbd> '}Open the <b>Printer</b>`:l.desk?`${coarse?'':'<kbd>E</kbd> '}Open the <b>Agents desk</b>`:`${coarse?'':'<kbd>E</kbd> '}${moveCtx?'Drop here':'Open'} <b>${l.id}</b> · ${summary(l)}`;pr.hidden=false;}
   else{hoverBox.visible=false;pr.hidden=true;}
 }
-function interact(){const l=centerLoc;if(!l)return;if(l.desk){openDesk();return;}if(l.printer){openPrinter();return;}if(moveCtx)finishMove(l);else select(l);}
+function interact(){const l=centerLoc;if(!l)return;if(l.desk){openDesk();return;}if(l.printer){openPrinter();return;}if(moveCtx)moveAsk(l);else select(l);}
 $('prompt').onclick=()=>{$('prompt').blur();interact();};
 // touch stick
 const joyEl=$('joy'),knob=$('knob');let joyId=null;
@@ -2755,10 +2769,10 @@ function syncFull(){const on=opsFull&&!!opsOpen()&&!(innerWidth<=720&&elkaOpen),
 function setFull(on){opsFull=!!on;syncFull();layoutElka();}
 function mapWanted(){turnMap=true;if(!camQuiet&&opsFull&&opsOpen())setFull(false);}
 const wantFull=f=>f!=null?!!f:(elkaTurn?!turnMap:true);
-const TABS=[['today','Today'],['orders','Orders'],['pickup','Pickup'],['deliver','Delivery'],['driver','Driver'],['owner','Owner'],['recv','Receiving'],['restock','Restock'],['agents','Agents']];
-const AGT={pickup:'Driver pickup',deliver:'Delivery',driver:'Routes and drivers',owner:'Owner',hours:'Employee hours',recv:'Receiving',team:'Agents desk',product:'Product upload agent',email:'Email agent',printer:'Printer'};
-const AGTAB={pickup:'pickup',deliver:'deliver',driver:'driver',owner:'owner',hours:'hours',recv:'recv',team:'agents',product:'agents',email:'agents',printer:'agents'};
-const TABN={today:'Today',orders:'Orders',pickup:'Pickup',deliver:'Delivery',driver:'Routes and drivers',owner:'Owner',hours:'Employee hours',recv:'Receiving',restock:'Restock',agents:'Agents'};
+const TABS=[['today','Today'],['orders','Orders'],['pickup','Pickup'],['deliver','Delivery'],['driver','Driver'],['owner','Owner'],['recv','Receiving'],['restock','Restock'],['racks','Racks'],['agents','Agents']];
+const AGT={pickup:'Driver pickup',deliver:'Delivery',driver:'Routes and drivers',owner:'Owner',hours:'Employee hours',racks:'Rack manager',recv:'Receiving',team:'Agents desk',product:'Product upload agent',email:'Email agent',printer:'Printer'};
+const AGTAB={pickup:'pickup',deliver:'deliver',driver:'driver',owner:'owner',hours:'hours',racks:'racks',recv:'recv',team:'agents',product:'agents',email:'agents',printer:'agents'};
+const TABN={today:'Today',orders:'Orders',pickup:'Pickup',deliver:'Delivery',driver:'Routes and drivers',owner:'Owner',hours:'Employee hours',racks:'Rack manager',recv:'Receiving',restock:'Restock',agents:'Agents'};
 function opsOpen(){return OPSP.map($).find(e=>!e.hidden)||null;}
 function hideRight(except){RIGHT.forEach(id=>{if(id!==except)$(id).hidden=true;});}
 function curTab(){const e=opsOpen();if(!e)return null;return e.id==='feed'?'today':e.id==='orders'?'orders':e.id==='drawer'?'restock':AGTAB[agentKind]||'agents';}
@@ -2777,7 +2791,7 @@ function tabCam0(k){if(walk||route)return;
   else if(k==='recv')pinpoint(byId.RECV,-1,{fast:true,keep:true});
   else if(k==='restock'){clearBeacon();setView(screenAt==='big'?'big':'shelves');}
   else if(k==='agents')deskCam();
-  else if(k==='today'||k==='owner'||k==='hours'||k==='deliver'||k==='driver'){clearBeacon();setView('overview');}}
+  else if(k==='today'||k==='owner'||k==='hours'||k==='racks'||k==='deliver'||k==='driver'){clearBeacon();setView('overview');}}
 function restoreOps(){if(opsBack&&!opsOpen()){const t=opsBack;opsBack=null;openOps(t,true,false);}}
 const pickupBoxes=()=>readyOrders().filter(x=>x.o.method==='van'&&rmOnVan(x.o)).reduce((a,x)=>a+x.o.boxes-(x.o.loaded||0),0);
 function syncNav(){const cur=curTab();if(cur)opsTab=cur;syncFull();
@@ -3629,6 +3643,107 @@ setInterval(()=>{if(hrShown()&&HR.staff.some(s=>hrOpen(s.id))&&!document.activeE
 function hrNowTxt(){const on=HR.staff.filter(s=>hrOpen(s.id));return on.length?on.map(s=>`${s.name} since ${hrT(hrOpen(s.id).a)}`).join(', '):'nobody is clocked in';}
 function hrFind(t){return HR.staff.find(s=>new RegExp('\\b'+s.name.toLowerCase().replace(/[^a-z' -]/g,'')+'\\b').test(t));}
 
+// --- Rack manager: every rack in both warehouses. Put wines on a row or a pallet, fix the counts, move single bottles or cases between racks. ---
+let rkEd=null,rkWh='small',rkQ='',rkF={mode:'move',w:-1,from:'',to:'',q:1},rkOpenG={};
+const rkWines=()=>WINES.map((w,i)=>({i,n:w.n})).sort((a,b)=>a.n.localeCompare(b.n));
+const rkWineOpts=sel=>`<option value="-1">Pick a wine…</option>`+rkWines().map(w=>`<option value="${w.i}"${w.i===sel?' selected':''}>${esc(w.n)}</option>`).join('');
+const rkShops=()=>locs.filter(l=>l.kind==='shop'),rkBig=()=>locs.filter(l=>l.kind==='pallet'||l.kind==='shelf');
+// a place that holds stock: a shop row (bottles), a box under a shelf (bottles) or a big-warehouse spot (cases)
+function rkPlace(key){const[t,id,k]=key.split(':'),l=byId[id];if(!l)return null;return{t,l,k:+k||0,key};}
+function rkName(p){return p.t==='r'?`${p.l.id} row ${p.k+1}`:p.t==='u'?`box under ${p.l.id.replace(/-0$/,'')}`:p.l.id;}
+function rkHas(w){const out=[];
+  rkShops().forEach(l=>l.items.forEach((it,k)=>{if(it.w===w&&it.b>0)out.push({key:`r:${l.id}:${k}`,txt:`${l.id} row ${k+1} · ${plural(it.b,'bottle')} · small warehouse`,unit:'b',n:it.b});}));
+  locs.filter(l=>l.kind==='under').forEach(l=>l.items.forEach(it=>{if(it.w===w&&it.b>0)out.push({key:`u:${l.id}`,txt:`Box under ${l.id.replace(/-0$/,'')} · ${plural(it.b,'bottle')}`,unit:'b',n:it.b});}));
+  locs.filter(isCases).forEach(l=>{const it=l.items.find(x=>x.w===w);if(it&&it.c>0)out.push({key:`c:${l.id}`,txt:`${l.id} · ${plural(it.c,'case')} · ${l.kind==='recv'?'receiving':'big warehouse'}`,unit:'c',n:it.c});});
+  return out;}
+// where that wine can go: shop rows with the same wine or free, or big-warehouse spots with room
+function rkDest(w,unit,skip){const out=[];
+  if(unit==='b'){rkShops().forEach(l=>l.items.forEach((it,k)=>{const key=`r:${l.id}:${k}`;if(key===skip)return;if(it.w===w&&it.b<LANE_CAP)out.push({key,txt:`${l.id} row ${k+1} · ${it.b} of ${LANE_CAP} now`,same:2,g:'Shop rows with this wine'});else if(it.w<0){const z=l.zone===WINES[w].z;out.push({key,txt:`${l.id} row ${k+1} · ${l.area}`,same:z?1:0,g:z?`Free shop rows in its section (${l.area})`:'Other free shop rows'});}}));out.sort((a,b)=>b.same-a.same);}
+  else rkBig().forEach(l=>{const key=`c:${l.id}`;if(key===skip)return;const room=l.cap-used(l);if(room>0){const sm=l.items.some(x=>x.w===w);out.push({key,txt:`${l.id} · room for ${room} · ${l.area}`,same:sm?1:0,g:sm?'Big warehouse: spots with this wine':'Big warehouse: spots with room'});}});
+  if(unit!=='b')out.sort((a,b)=>b.same-a.same);return out;}
+function rkSave(what,before){pushUndo(before,what);changed();}
+// move q bottles or cases from one place to another. Returns how many moved.
+function rkMove(fromKey,toKey,w,q){const A=rkPlace(fromKey),B=rkPlace(toKey);if(!A||!B||!(q>0))return 0;const before=snap();let n=0;
+  if(A.t==='c'){if(B.t!=='c')return 0;const room=B.l.cap-used(B.l);n=takeItem(A.l,w,Math.min(q,room));if(n)addItem(B.l,w,n);}
+  else{const src=A.t==='r'?A.l.items[A.k]:A.l.items.find(x=>x.w===w);if(!src||src.w!==w||B.t!=='r')return 0;const dst=B.l.items[B.k];if(dst.w>=0&&dst.w!==w)return 0;
+    n=Math.min(q,src.b,LANE_CAP-(dst.w<0?0:dst.b));if(n<=0)return 0;if(dst.w<0){dst.w=w;dst.b=0;}dst.b+=n;src.b-=n;if(A.t==='u'&&!src.b)A.l.items.splice(A.l.items.indexOf(src),1);}
+  if(n){log(`<b>${plural(n,A.t==='c'?'case':'bottle')}</b> ${esc(WINES[w].n)} moved ${rkName(A)} → ${rkName(B)}`);rkSave(`moving ${plural(n,A.t==='c'?'case':'bottle')} of ${WINES[w].n}`,before);}
+  return n;}
+function rkAdd(toKey,w,q){const B=rkPlace(toKey);if(!B||!(q>0))return 0;const before=snap();let n=0;
+  if(B.t==='c'){n=Math.min(q,B.l.cap-used(B.l));if(n>0)addItem(B.l,w,n);}
+  else if(B.t==='r'){const d=B.l.items[B.k];if(d.w>=0&&d.w!==w)return 0;if(d.w<0){d.w=w;d.b=0;}n=Math.min(q,LANE_CAP-d.b);d.b+=n;}
+  if(n>0){log(`<b>${plural(n,B.t==='c'?'case':'bottle')}</b> ${esc(WINES[w].n)} added to ${rkName(B)}`);rkSave(`adding ${WINES[w].n} to ${rkName(B)}`,before);}
+  return Math.max(0,n);}
+const rkDone=t=>toast(`${t} · Saved`);
+function rkOpts(D,sel){let h='',g=null;D.forEach(d=>{if(d.g!==g){if(g!==null)h+='</optgroup>';g=d.g;h+=`<optgroup label="${esc(g)}">`;}h+=`<option value="${d.key}"${d.key===sel?' selected':''}>${esc(d.txt)}</option>`;});return h+(g!==null?'</optgroup>':'');}
+// the editor on a shop shelf row, shown in the shelf panel
+function rkRowEd(l,k){if(!rkEd||rkEd.l!==l.id||rkEd.k!==k)return '';const it=l.items[k];
+  if(rkEd.mode==='mv'){const D=rkDest(it.w,'b',`r:${l.id}:${k}`);
+    return `<div class="xfer"><label>How many bottles?<div class="line"><input type="number" id="rkq" min="1" max="${it.b}" value="1"><button class="sm" data-rk="all" data-n="${it.b}">All ${it.b}</button></div></label>
+      <label>Move to<select id="rkto">${rkOpts(D)}</select></label>
+      <div class="line"><button class="primary sm" data-rk="mvgo" data-l="${l.id}" data-k="${k}">Move the bottles</button><button class="sm ghost" data-rk="close">Cancel</button></div></div>`;}
+  return `<div class="xfer"><label>Wine on this row<select id="rkw">${rkWineOpts(it.w)}</select></label><label>Bottles on the row (up to ${LANE_CAP})<input type="number" id="rkb" min="0" max="${LANE_CAP}" value="${it.w<0?LANE_CAP:it.b}"></label>
+    <div class="line"><button class="primary sm" data-rk="setgo" data-l="${l.id}" data-k="${k}">Save the row</button>${it.w>=0?`<button class="sm" data-rk="empty" data-l="${l.id}" data-k="${k}">Empty this row</button>`:''}<button class="sm ghost" data-rk="close">Cancel</button></div></div>`;}
+function rkRowBtns(l,k){const it=l.items[k];if(it.w<0)return `<button class="sm" data-rk="ed" data-m="set" data-l="${l.id}" data-k="${k}">Put a wine here</button>`;
+  return `<span class="rkpm"><button class="sm" data-rk="minus" data-l="${l.id}" data-k="${k}" aria-label="One bottle less"${it.b?'':' disabled'}>−</button><button class="sm" data-rk="plus" data-l="${l.id}" data-k="${k}" aria-label="One bottle more"${it.b<LANE_CAP?'':' disabled'}>+</button></span>${it.b?`<button class="sm" data-rk="ed" data-m="mv" data-l="${l.id}" data-k="${k}">Move…</button>`:''}<button class="sm ghost" data-rk="ed" data-m="set" data-l="${l.id}" data-k="${k}">Change…</button>`;}
+function rkAction(b){const D=b.dataset;if(D.rk==null&&D.rkopen==null&&D.rkwh==null&&D.rkf==null)return false;
+  if(D.rkopen){const l=byId[D.rkopen];if(l){select(l);focusLoc(l);}return true;}
+  if(D.rkwh){rkWh=D.rkwh;rkRerender();return true;}
+  if(D.rkf){rkFormGo();return true;}
+  const a=D.rk,l=byId[D.l],k=+D.k;
+  if(a==='close'){rkEd=null;rkRerender();return true;}
+  if(a==='all'){const q=$('rkq');if(q)q.value=D.n;return true;}
+  if(a==='ed'){rkEd={l:D.l,k,mode:D.m};rkRerender();return true;}
+  if(!l)return true;
+  if(a==='minus'||a==='plus'){const it=l.items[k];if(!it||it.w<0)return true;const before=snap();it.b=Math.max(0,Math.min(LANE_CAP,it.b+(a==='plus'?1:-1)));log(`${l.id} row ${k+1}: ${esc(WINES[it.w].n)} set to <b>${it.b}</b>`);rkSave(`changing the count on ${l.id} row ${k+1}`,before);rkDone(`${l.id} row ${k+1}: ${it.b} of ${LANE_CAP}`);return true;}
+  if(a==='cminus'||a==='cplus'){const w=+D.w;const before=snap();if(a==='cplus'){if(used(l)>=l.cap){toast(`${l.id} is full`);return true;}addItem(l,w,1);}else takeItem(l,w,1);const it=l.items.find(x=>x.w===w);log(`${l.id}: ${esc(WINES[w].n)} set to <b>${plural(it?it.c:0,'case')}</b>`);rkSave(`changing the count on ${l.id}`,before);rkDone(`${l.id}: ${plural(it?it.c:0,'case')} of ${WINES[w].n}`);return true;}
+  if(a==='mvgo'){const it=l.items[k],to=($('rkto')||{}).value,q=parseInt(($('rkq')||{}).value)||0;if(!to){toast('No row has room for this wine. Free a row first.');return true;}const n=rkMove(`r:${l.id}:${k}`,to,it.w,q);rkEd=null;if(n)rkDone(`Moved ${plural(n,'bottle')} to ${rkName(rkPlace(to))}`);else toast('Nothing moved. The row there is full.');rkRerender();return true;}
+  if(a==='setgo'){const it=l.items[k],w=+$('rkw').value,bb=Math.max(0,Math.min(LANE_CAP,parseInt($('rkb').value)||0));if(w<0){toast('Pick the wine first.');return true;}const before=snap();it.w=w;it.b=bb;rkEd=null;log(`${l.id} row ${k+1}: <b>${esc(WINES[w].n)}</b>, ${plural(bb,'bottle')}`);rkSave(`changing ${l.id} row ${k+1}`,before);rkDone(`${l.id} row ${k+1}: ${WINES[w].n}, ${plural(bb,'bottle')}`);return true;}
+  if(a==='empty'){const it=l.items[k];const before=snap();const was=it.w;it.w=-1;it.b=0;rkEd=null;log(`${l.id} row ${k+1} emptied (${esc(WINES[was].n)})`);rkSave(`emptying ${l.id} row ${k+1}`,before);rkDone(`${l.id} row ${k+1} is a free row now`);return true;}
+  return true;}
+function rkRerender(){if(sel&&!$('panel').hidden)renderPanel();if(agentKind==='racks'&&!$('agent').hidden)renderAgent();}
+// the one form at the top of the rack manager: move or add stock anywhere
+function rkFormHtml(){const F=rkF,has=F.w>=0?rkHas(F.w):[];if(F.mode==='move'&&F.from&&!has.some(h=>h.key===F.from))F.from='';if(F.mode==='move'&&!F.from&&has.length)F.from=has[0].key;
+  const src=has.find(h=>h.key===F.from),unit=F.mode==='move'?(src?src.unit:'b'):(F.to&&F.to[0]==='c'?'c':F.toU||'b');
+  const D=F.w<0?[]:F.mode==='move'?(src?rkDest(F.w,src.unit,F.from):[]):[...rkDest(F.w,'b'),...rkDest(F.w,'c')];if(F.to&&!D.some(d=>d.key===F.to))F.to='';if(!F.to&&D.length)F.to=D[0].key;
+  const u=F.mode==='move'?(src&&src.unit==='c'?'cases':'bottles'):(F.to&&F.to[0]==='c'?'cases':'bottles');
+  let h=`<div class="rs card"><div class="nm">Move or add stock</div><div class="chips" style="margin:6px 0"><button class="chip${F.mode==='move'?' sel':''}" data-rkm="move">Move between racks</button><button class="chip${F.mode==='add'?' sel':''}" data-rkm="add">Add to a rack</button></div>
+    <div class="rkform"><label>Wine<select id="rkFw" data-rkfi="w">${rkWineOpts(F.w)}</select></label>`;
+  if(F.w>=0){if(F.mode==='move')h+=`<label>From<select data-rkfi="from">${has.length?has.map(x=>`<option value="${x.key}"${x.key===F.from?' selected':''}>${esc(x.txt)}</option>`).join(''):'<option value="">This wine is on no rack right now</option>'}</select></label>`;
+    h+=`<label>To<select data-rkfi="to">${D.length?rkOpts(D,F.to):'<option value="">No place has room</option>'}</select></label>
+      <label>How many ${u}<input type="number" min="1" data-rkfi="q" value="${F.q}"${src?` max="${src.n}"`:''}></label>`;}
+  h+=`</div><div class="acts"><button class="sm primary" data-rkf="1"${F.w>=0&&F.to&&(F.mode==='add'||F.from)?'':' disabled'}>${F.mode==='move'?'Move':'Add'}</button></div>
+    <div class="hint">Bottles move between shop rows and the boxes under them. Cases move between pallets and shelves in the big warehouse. To bring a case to the shop, use “Bring a case” on the wine.</div></div>`;
+  return h;}
+function rkFormGo(){const F=rkF;if(F.w<0||!F.to)return;const q=Math.max(1,parseInt(F.q)||1),P=rkPlace(F.to);
+  const n=F.mode==='move'?rkMove(F.from,F.to,F.w,q):rkAdd(F.to,F.w,q);const u=P&&P.t==='c'?'case':'bottle';
+  if(n){rkDone(`${F.mode==='move'?'Moved':'Added'} ${plural(n,u)} of ${WINES[F.w].n} ${F.mode==='move'?'to':'on'} ${rkName(P)}`);if(n<q)setTimeout(()=>toast(`Only ${n} fit there.`),2700);}else toast('Nothing changed. That place is full.');
+  F.from='';F.to='';F.q=1;rkRerender();}
+document.addEventListener('change',e=>{const D=e.target.dataset||{};if(D.rkfi==null)return;const v=e.target.value;
+  if(D.rkfi==='w'){rkF.w=+v;rkF.from='';rkF.to='';}else if(D.rkfi==='q')rkF.q=v;else rkF[D.rkfi]=v;if(D.rkfi==='from')rkF.to='';if(D.rkfi!=='q')rkRerender();});
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-rkm]');if(!b)return;rkF.mode=b.dataset.rkm;rkF.from='';rkF.to='';rkRerender();});
+document.addEventListener('input',e=>{if(e.target.id!=='rkSearch')return;rkQ=e.target.value;clearTimeout(rkSearchT);rkSearchT=setTimeout(()=>{const p=e.target.selectionStart;rkRerender();const x=$('rkSearch');if(x){x.focus();try{x.setSelectionRange(p,p);}catch(_){}}},250);});
+let rkSearchT=0;
+document.addEventListener('toggle',e=>{const d=e.target;if(d.dataset&&d.dataset.rkg)rkOpenG[d.dataset.rkg]=d.open;},true);
+function racksHtml(){const q=rkQ.trim().toLowerCase(),wn=it=>it.w>=0?WINES[it.w].n:'';
+  const match=(l)=>!q||l.id.toLowerCase().includes(q)||(l.area||'').toLowerCase().includes(q)||l.items.some(it=>it.w>=0&&WINES[it.w]&&WINES[it.w].n.toLowerCase().includes(q));
+  let h=`<div class="chips"><button class="chip${rkWh==='small'?' sel':''}" data-rkwh="small">Small warehouse</button><button class="chip${rkWh==='big'?' sel':''}" data-rkwh="big">Big warehouse</button></div>`;
+  h+=`<div class="rkcols"><div>${rkFormHtml()}</div><div>`;
+  h+=`<div class="rkfind"><input id="rkSearch" placeholder="Find a rack or a wine…" value="${esc(rkQ)}" autocomplete="off"></div>`;
+  const groups=[];
+  if(rkWh==='small'){UNITS.filter(u=>!u.ship).forEach(u=>{const L=rkShops().filter(l=>l.unit===u);groups.push({k:u.k,n:`${u.name} · ${u.k}`,L,shop:true});});}
+  else{[['Rack A','Rack A'],['Rack B','Rack B'],['Middle row','Middle row'],['Vintage area','Vintage area'],['Receiving','Receiving']].forEach(([a,n])=>groups.push({k:a,n,L:locs.filter(l=>isCases(l)&&l.area===a)}));}
+  let any=0;
+  groups.forEach(g=>{const L=g.L.filter(match);if(!L.length)return;any++;
+    const tot=g.shop?L.reduce((a,l)=>a+l.items.reduce((s,i)=>s+(i.w>=0?i.b:0),0),0):L.reduce((a,l)=>a+used(l),0),cap=g.shop?L.length*LANES*LANE_CAP:L.reduce((a,l)=>a+l.cap,0),free=g.shop?L.reduce((a,l)=>a+l.items.filter(i=>i.w<0).length,0):L.filter(l=>!used(l)).length;
+    h+=`<details class="rkg" data-rkg="${g.k}"${rkOpenG[g.k]||q?' open':''}><summary><b>${esc(g.n)}</b><span class="meta">${g.shop?`${fmt(tot)} of ${fmt(cap)} bottles · ${plural(free,'free row')}`:`${fmt(tot)} of ${fmt(cap)} cases · ${plural(free,'empty spot')}`}</span></summary>`;
+    L.forEach(l=>{const ws=[...new Set(l.items.filter(i=>i.w>=0&&(g.shop?true:i.c>0)).map(wn))],n=g.shop?l.items.reduce((s,i)=>s+(i.w>=0?i.b:0),0):used(l),c=g.shop?LANES*LANE_CAP:l.cap;
+      h+=`<div class="rkrow"><div style="min-width:0;flex:1"><div class="nm">${esc(l.id)} <span class="meta">${esc(l.where.split(' · ').slice(2).join(' · '))}</span></div><div class="meta">${n?`${fmt(n)} of ${c} ${g.shop?'bottles':'cases'} · `:'Empty · '}${ws.length?esc(ws.slice(0,3).join(', '))+(ws.length>3?` and ${ws.length-3} more`:''):'no wines'}</div><div class="rkbar"><i style="width:${Math.round(n/c*100)}%"></i></div></div><button class="sm" data-rkopen="${l.id}">Open</button></div>`;});
+    h+=`</details>`;});
+  if(!any)h+=`<div class="empty">No rack or wine matches “${esc(rkQ)}”.</div>`;
+  h+=`</div></div>`;
+  return h+`<div class="hint">Open a rack to change what is on it: the wine on each row, the count, or move bottles and cases to another rack. Every change can be undone by telling Elka “undo”.</div>`+SAMPLE;}
+
 // --- Agents: the team working inside the one app. This one list drives the Agents desk (the desk in the office) and what Elka can reach. ---
 const AGENTS=[
  {k:'elka',n:'Elka',re:/\belka\b/,what:'Voice and text for the whole warehouse. Finds bottles, walks you through orders, keeps the counts, and can use every agent on this desk.',now:()=>'listening on this screen'},
@@ -3752,7 +3867,7 @@ async function writeDesc(){const n=String(pd.n).trim();if(!n){toast('Type the pr
 $('pdFile').addEventListener('change',()=>{const f=$('pdFile').files[0];$('pdFile').value='';if(!f)return;try{if(pd.img)URL.revokeObjectURL(pd.img);pd.img=URL.createObjectURL(f);}catch(e){}renderAgent();toast('Photo added to the draft. It stays on this device.');});
 
 // --- the agent panel (Pickup, Delivery, Owner, Receiving, Agents) and the buttons shared by every Ops panel ---
-function agentSub(k){const S=STATS;if(k==='hours'){const n=HR.staff.filter(s=>hrOpen(s.id)).length;return `${n} of ${HR.staff.length} working now · week of ${hrWeekTxt()}`;}if(k==='printer')return 'Packing table · Label printer and Office printer';return k==='driver'?rmSub():k==='pickup'?`${plural(pickupBoxes(),'box')} to load · van leaves ${VAN.leaves}`:k==='deliver'?`${plural((state.van||[]).filter(o=>!o.delivered).length,'stop')} left · ${(state.van||[]).filter(o=>o.delivered).length} delivered`:k==='owner'?'Money, orders and time · sample day'
+function agentSub(k){const S=STATS;if(k==='racks')return 'Every rack in both warehouses · what is on it, counts and moves';if(k==='hours'){const n=HR.staff.filter(s=>hrOpen(s.id)).length;return `${n} of ${HR.staff.length} working now · week of ${hrWeekTxt()}`;}if(k==='printer')return 'Packing table · Label printer and Office printer';return k==='driver'?rmSub():k==='pickup'?`${plural(pickupBoxes(),'box')} to load · van leaves ${VAN.leaves}`:k==='deliver'?`${plural((state.van||[]).filter(o=>!o.delivered).length,'stop')} left · ${(state.van||[]).filter(o=>o.delivered).length} delivered`:k==='owner'?'Money, orders and time · sample day'
   :k==='recv'?(S.recv?`${plural(S.recv,'case')} waiting to be sorted`:state.po&&state.po.done?'Nothing waiting to be sorted':`PO ${PO.no} from ${PO.from} expected today`)+(newAsk().length?` · ${plural(newAsk().length,'new wine')} to decide`:''):k==='product'?'Preview · nothing is sent to Shopify':k==='email'?(emBusy?'Writing…':emSubject()?'One email on the desk · nothing sent':'Writes the email and its code · nothing sent'):'Your agents, reached from the office desk';}
 // the office desk in the small warehouse: the place where the owner reaches every agent
 function deskCam(){if(walk||route)return;const k=phone()?1.6:1,t=[SX+5.2,2,SZ+35.8],p=wallsFull?[SX+14,18,SZ+20.5]:[SX+15.5,13,SZ+49];clearBeacon();fly(p.map((x,i)=>t[i]+(x-t[i])*k),t,700);viewBtns().forEach(b=>b.classList.remove('on'));}
@@ -3760,11 +3875,12 @@ function openDesk(){openAgent('team');deskCam();}
 function openAgent(kind,full){const f=wantFull(full);agentKind=AGT[kind]?kind:'team';hideRight('agent');opsBack=null;dropSel();renderAgent();$('agent').hidden=false;$('aBody').scrollTop=0;setFull(f);syncNav();}
 function renderAgent(){const k=agentKind,keep={};$('aTitle').textContent=AGT[k];$('aSub').textContent=agentSub(k);$('aBack').hidden=!(k==='product'||k==='email'||k==='printer');
   $('aBody').querySelectorAll('input[id],select[id],textarea[id]').forEach(e=>keep[e.id]=e.value);
-  $('aBody').innerHTML=({pickup:pickupHtml,deliver:deliverHtml,owner:ownerHtml,hours:hoursHtml,recv:()=>recvHtml(false),team:teamHtml,product:productHtml,email:emailHtml,driver:rmHtml,printer:printerHtml})[k]();
+  $('aBody').innerHTML=({pickup:pickupHtml,deliver:deliverHtml,owner:ownerHtml,hours:hoursHtml,racks:racksHtml,recv:()=>recvHtml(false),team:teamHtml,product:productHtml,email:emailHtml,driver:rmHtml,printer:printerHtml})[k]();
   Object.keys(keep).forEach(id=>{const e=$(id);if(e&&[...(e.options||[{value:keep[id]}])].some(o=>o.value===keep[id]))e.value=keep[id];});
   if(k==='email')emMount();if(k==='driver')drvAfter();}
 const tell=(r,chips)=>{if(elkaOpen)say(r.text,r.ok?(chips||[chipUndo()]):[]);else toast(r.toast||r.text);};
 function opsAction(b){const D=b.dataset;
+  if(rkAction(b))return true;
   if(D.go){openOps(D.go);tabCam(D.go);return true;}
   if(D.agent){openAgent(D.agent);return true;}
   if(D.prdoc){if(!printDoc(D.prdoc))toast('Nothing to print for that right now.');return true;}
