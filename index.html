@@ -544,6 +544,7 @@ kbd{font-family:var(--f-body);font-size:12px;font-weight:700;color:var(--ink);ba
 body.elka-open #joy{display:none!important}
 
 @media print{body>*:not(#print){display:none!important}#print{position:static!important;background:none!important;padding:0!important;overflow:visible!important}#print .pbar{display:none!important}.paper{box-shadow:none!important;margin:0 auto!important;border-radius:0!important;page-break-after:always;break-after:page}html,body{background:#fff!important;overflow:visible!important;height:auto!important}}
+.rcgrid{display:grid;grid-template-columns:auto minmax(0,1fr) auto 64px auto;gap:8px 10px;align-items:center;margin:10px 0;font-size:14px}.rcgrid .r{text-align:right}.rcck input{width:20px;height:20px;accent-color:#8c2f39}.rcgot{width:64px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;font:inherit;background:var(--card,#fff);color:inherit;box-sizing:border-box}.rcgot:disabled{opacity:.45}
 .prsws{display:grid;gap:8px;margin-bottom:6px}.prsw{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}.prsw input{width:18px;height:18px;accent-color:var(--accent,#8c2f39)}
 /* print preview: paper sheets over the screen */
 #print{position:fixed;inset:0;z-index:20;background:rgba(10,10,10,.7);overflow:auto;padding:0 16px 24px;box-sizing:border-box}
@@ -2709,6 +2710,7 @@ function printDoc(doc,auto){
   if(doc==='restock')return prOpen('Restock list',restockDoc(),'Office printer',auto);
   if(doc==='cash')return prOpen('Cash sales to enter in Shopify',cashDoc(),'Office printer',auto);
   if(doc==='test-label'||doc==='test-office'){const id=doc.slice(5);return prOpen('Test page · '+(PRINTERS.find(x=>x.id===id)||{}).n,testDoc(id),(PRINTERS.find(x=>x.id===id)||{}).n,auto);}
+  if(doc==='rccheck')return prOpen('Delivery check · PO '+PO.no,rcCheckDoc(),'Office printer',auto);
   if(doc==='sheets')return openPrint('sheet',orderQueue(),auto);
   if(doc==='ready')return openPrint('labels',readyOrders().map(x=>x.o),auto);
   if(doc==='next'){const o=nextOrder();return o?openPrint('all',[o],auto):false;}
@@ -2730,7 +2732,8 @@ function printerHtml(){const sw=(k,t)=>`<label class="prsw"><input type="checkbo
   <button class="sm" data-prdoc="sheets"${q?'':' disabled'}>Order sheets for all ${q} to pack</button>
   <button class="sm" data-prdoc="ready"${ready?'':' disabled'}>Labels for the ${ready} packed</button>
   <button class="sm" data-prdoc="restock">Restock list</button>
-  <button class="sm" data-prdoc="cash">Cash sales to enter</button></div>
+  <button class="sm" data-prdoc="cash">Cash sales to enter</button>
+  <button class="sm" data-prdoc="rccheck">Delivery check sheet</button></div>
   <div class="sec">Print automatically</div><div class="prsws">${sw('labels','Box labels when an order is marked packed')}${sw('slip','Packing slip when an order is marked packed')}${sw('sheet','Order sheet when picking starts')}</div>
   <div class="sec">Recent prints</div>${PR.jobs.length?`<div class="rs">${PR.jobs.map(j=>`<div class="mrow"><span>${esc(j.title)} <span class="meta">· ${esc(j.printer)}</span></span><b>${esc(j.t)}</b></div>`).join('')}</div>`:'<div class="empty">Nothing printed yet.</div>'}
   <div class="acts"><button class="sm ghost" data-prcam="1">Show the printer in 3D</button></div>`+SAMPLE;}
@@ -2963,6 +2966,37 @@ function receive(list,what,po,fresh,from){const R=byId.RECV,before=snap();let n=
   log(`<b>${plural(n+fc,'case')}</b> received${n?' · waiting to be sorted':''}${fc?` · ${plural(fresh.length,'wine')} not in Shopify`:''}`);gain(10,3);changed();
   const known=n?`Received ${plural(n,'case')}${po?` on PO ${PO.no} from ${PO.from}`:from?` from ${from}`:''}: ${list.map(x=>`${x.c} × ${nm(x.w)}`).join('; ')}. They are in the receiving area of the big warehouse, waiting to be sorted. Tell me where you put each one.`:'';
   return{ok:true,n,fresh:ask.length,toast:fresh.length?`${n?`Received ${plural(n,'case')}. `:''}${plural(fresh.length,'wine')} not in Shopify yet. See the question in Receiving.`:'',text:[known,ask.length?newAskText(ask,!!n):'',had.length?`${andList(had.map(x=>x.n))} ${had.length>1?'are':'is'} not in Shopify yet and already ${had.length>1?'have drafts':'has a draft'}, so I set ${had.length>1?'those cases':plural(had[0].c,'more case')} aside with the rest.`:''].filter(Boolean).join(' ')};}
+// --- Truck check-in: tick each line of the order sheet as it comes off the truck and type what actually arrived. Short, missing and extra lines are flagged;
+//     confirming receives what really came, and the Shopify quantities below follow those counts (preview: nothing is sent to Shopify from this page). ---
+let rcChk=null;
+function rcRows(){const a=PO.lines.map(([n,c])=>({n,c,w:WBYN[n.toLowerCase()]})).filter(x=>x.w>=0).map(x=>({key:'w'+x.w,name:nm(x.w),c:x.c,w:x.w,fresh:false}));
+  PO.fresh.forEach(([n,c,like],i)=>a.push({key:'f'+i,name:n,c,w:-1,fresh:true,like}));return a;}
+function rcState(){if(!rcChk){rcChk={};rcRows().forEach(r=>rcChk[r.key]={on:false,got:r.c});}return rcChk;}
+function rcFlag(r,x){if(!x.on)return '<span class="meta">Not ticked</span>';const g=+x.got||0;return g===r.c?'<span class="pill ok">Matches</span>':g===0?'<span class="pill out">Missing</span>':g<r.c?`<span class="pill low">Short ${r.c-g}</span>`:`<span class="pill mth">Extra ${g-r.c}</span>`;}
+function rcCheckHtml(){const st=rcState(),rows=rcRows(),ticked=rows.filter(r=>st[r.key].on).length;
+  return `<div class="rs card now"><div class="top"><div class="nm">Truck check-in: PO ${PO.no}</div><span class="pill mth">${PO.from}</span></div>
+  <div class="meta">Tick each line as it comes off the truck and type how many cases actually arrived. Untick anything that did not come.</div>
+  <div class="rcgrid"><span class="meta">Arrived</span><span class="meta">Wine</span><span class="meta r">Ordered</span><span class="meta r">Got</span><span></span>
+  ${rows.map(r=>{const x=st[r.key];return `<label class="rcck"><input type="checkbox" data-rck="${r.key}"${x.on?' checked':''} aria-label="Arrived: ${esc(r.name)}"></label><div style="min-width:0">${esc(r.name)}${r.fresh?' <span class="pill low">Not in Shopify</span>':''}</div><b class="r">${r.c}</b><input class="rcgot" type="number" min="0" max="90" value="${x.got}" data-rgot="${r.key}" aria-label="Cases that arrived: ${esc(r.name)}"${x.on?'':' disabled'}><span>${rcFlag(r,x)}</span>`;}).join('')}</div>
+  <div class="meta">${ticked} of ${rows.length} lines ticked</div>
+  <div class="acts"><button class="sm" data-rckall="1">Tick all as arrived</button><button class="sm primary" data-rcok="1"${ticked?'':' disabled'}>Confirm what arrived</button><button class="sm ghost" data-rsheet="1">Load the order sheet…</button><button class="sm ghost" data-rpo="1">Receive all without checking</button></div></div>`;}
+function rcReportHtml(){const c=state.po&&state.po.check;if(!c)return'';const bad=c.lines.filter(l=>l.got!==l.c);
+  return `<div class="rs"><div class="top"><div class="nm">Checked against the order sheet at ${esc(c.at)}</div>${bad.length?`<span class="pill low">${plural(bad.length,'line')} to raise with ${esc(PO.from)}</span>`:'<span class="pill ok">Everything matched</span>'}</div>
+  ${c.lines.map(l=>`<div class="mrow"><span>${esc(l.n)}</span><b>${l.got} of ${l.c}${l.got===l.c?'':l.got===0?' · missing':l.got<l.c?` · short ${l.c-l.got}`:` · extra ${l.got-l.c}`}</b></div>`).join('')}
+  <div class="acts"><button class="sm" data-rcprint="1">Print the check sheet</button></div></div>`;}
+function rcConfirm(){const st=rcState(),rows=rcRows(),on=rows.filter(r=>st[r.key].on);if(!on.length)return{ok:false,text:'Tick at least one line that arrived first.'};
+  const list=[],fresh=[];on.forEach(r=>{const g=Math.max(0,Math.min(90,Math.round(+st[r.key].got||0)));if(!g)return;if(r.fresh){const like=r.like?WBYN[r.like.toLowerCase()]:-1;fresh.push({n:r.name,c:g,like:like>=0?like:-1,why:like>=0?'vintage':''});}else list.push({w:r.w,c:g});});
+  const lines=rows.map(r=>({n:r.name,c:r.c,got:st[r.key].on?Math.max(0,Math.round(+st[r.key].got||0)):0}));
+  if(!list.length&&!fresh.length){state.po={done:true,check:{at:clock(),lines}};changed();rcChk=null;return{ok:true,n:0,text:`Nothing from PO ${PO.no} arrived. I noted every line as missing.`};}
+  const r=receive(list,`receiving PO ${PO.no}`,true,fresh);if(r.ok){state.po.check={at:clock(),lines};save();rcChk=null;
+    const bad=lines.filter(l=>l.got!==l.c);r.text=(bad.length?`Checked against the order sheet: ${andList(bad.map(l=>`${l.n} ${l.got===0?'did not come':l.got<l.c?`is short ${l.c-l.got}`:`has ${l.got-l.c} extra`}`))}. `:'Checked against the order sheet: everything matched. ')+r.text+(list.length?' The Shopify quantities below use what actually arrived.':'');}
+  return r;}
+function rcRerender(){if(agentKind==='recv'&&!$('agent').hidden)renderAgent();if(sel&&sel.kind==='recv'&&!$('panel').hidden)renderPanel();}
+document.addEventListener('change',e=>{const t=e.target;if(!t||!t.dataset)return;const st=rcChk||rcState();
+  if(t.dataset.rck){const x=st[t.dataset.rck];if(!x)return;x.on=t.checked;rcRerender();}
+  else if(t.dataset.rgot){const x=st[t.dataset.rgot];if(!x)return;x.got=Math.max(0,Math.min(90,Math.round(+t.value||0)));rcRerender();}});
+function rcCheckDoc(){const c=state.po&&state.po.check,rows=c?c.lines:rcRows().map(r=>({n:r.name,c:r.c,got:null}));
+  return listPaper('Delivery check · PO '+PO.no,PO.from,['Wine','Ordered','Arrived','Note'],rows.map(l=>`<tr><td>${esc(l.n)}</td><td class="r">${l.c}</td><td class="r">${l.got==null?'____':l.got}</td><td>${l.got==null?'':l.got===l.c?'OK':l.got===0?'Missing':l.got<l.c?'Short '+(l.c-l.got):'Extra '+(l.got-l.c)}</td></tr>`),c?`Checked at ${esc(c.at)}`:'');}
 function receivePO(){if(state.po&&state.po.done)return{ok:false,text:`PO ${PO.no} from ${PO.from} is already received.`+(used(byId.RECV)?` ${plural(used(byId.RECV),'case')} of it ${used(byId.RECV)>1?'are':'is'} still waiting to be sorted.`:'')};
   return receive(poLines(),`receiving PO ${PO.no}`,true,poFresh());}
 function putAway(w,c,to){const R=byId.RECV,it=R.items.find(i=>i.w===w);if(!it)return{ok:false,text:`There is no ${nm(w)} waiting in Receiving.`};
@@ -2974,8 +3008,8 @@ function putAway(w,c,to){const R=byId.RECV,it=R.items.find(i=>i.w===w);if(!it)re
 function recvHtml(inPanel){const R=byId.RECV,done=state.po&&state.po.done,n=used(R);
   let h=inPanel?'':`<div class="note">A delivery lands in the receiving area, just inside the garage door of the big warehouse. Put each wine away, tell Elka where, and the counts and locations stay right.</div>`;
   h+=`<div class="cols"><div class="main">`;
-  if(!done)h+=`<div class="rs card now"><div class="top"><div class="nm">Expected today: PO ${PO.no}</div><span class="pill mth">${PO.from}</span></div>${poLines().map(x=>`<div class="oline"><span class="ln">${x.c}</span><div style="min-width:0;flex:1">${esc(nm(x.w))}</div><span class="meta">cases</span></div>`).join('')}${poFresh().map(x=>`<div class="oline"><span class="ln">${x.c}</span><div style="min-width:0;flex:1">${esc(x.n)} <span class="pill low">Not in Shopify</span></div><span class="meta">cases</span></div>`).join('')}<div class="acts"><button class="sm primary" data-rpo="1">Receive this delivery</button><button class="sm" data-rsheet="1">Load the order sheet…</button></div></div>`;
-  else h+=`<div class="meta"><span class="pill ok">PO ${PO.no} from ${PO.from} received</span></div>`;
+  if(!done)h+=rcCheckHtml();
+  else h+=`<div class="meta"><span class="pill ok">PO ${PO.no} from ${PO.from} received</span></div>`+rcReportHtml();
   h+=newHtml();
   h+=shqHtml();
   h+=`<div class="sec">Waiting to be sorted · ${plural(n,'case')}</div>`;
@@ -3667,6 +3701,9 @@ function opsAction(b){const D=b.dataset;
   if(D.talk){if(!elkaOpen)openElka();else eIn.focus();return true;}
   if(D.froute){const o=orderByNo(D.froute);if(o){const r=routeReply(o,null);say(r.text,r.chips);}return true;}
   if(D.fopen){orderFocus=D.fopen;tagEdit=null;openOps('orders');return true;}
+  if(D.rckall){const st=rcState();Object.values(st).forEach(x=>x.on=true);rcRerender();return true;}
+  if(D.rcok){const r=rcConfirm();if(r.ok&&r.n)pinpoint(byId.RECV,-1,{fast:true,keep:true});recvTell(r);rcRerender();return true;}
+  if(D.rcprint){prOpen('Delivery check · PO '+PO.no,rcCheckDoc(),'Office printer');return true;}
   if(D.rpo){const r=receivePO();if(r.ok)pinpoint(byId.RECV,-1,{fast:true,keep:true});recvTell(r);return true;}
   if(D.rlist){const el=$('rcList'),lines=parseSheet(el?el.value:'');if(!lines.length){toast('Each line needs a wine and a number of cases, like “5 Castel Grand Vin 2023”');return true;}const r=receiveLines(lines,'the list you typed');if(r.ok){el.value='';pinpoint(byId.RECV,-1,{fast:true,keep:true});}recvTell(r);return true;}
   if(D.npall){npTell(makeNewDrafts());return true;}
