@@ -1430,7 +1430,7 @@ const SW=32, SL=40, GAP=5, SX=W_+GAP, SZ=L_-SL, SDOOR={z0:23,z1:26.5}, SGAR={x0:
 const CASE={w:1.04,d:0.83,h:1.08};
 const RACK={depth:4,bay:8,beams:[5.6,11.1],top:16.2};
 const SHELF={depth:2,levels:[1.5,3.25],top:5.1};       // shop racking: same green + orange style, smaller
-const LANES=6, LANE_CAP=7, LOW=2, UNDER_CAP=4;         // rows per shelf, bottles deep, "low" threshold, boxes that fit under a section
+const LANES=12, LANE_CAP=7, BOTTLE_S=0.66, LOW=2, UNDER_CAP=4;         // rows per shelf, bottles deep, "low" threshold, boxes that fit under a section
 const locs=[]; const byId={};
 function addLoc(o){o.items=[];locs.push(o);byId[o.id]=o;return o;}
 const used=l=>l.items.reduce((a,i)=>a+i.c,0);
@@ -1840,7 +1840,7 @@ function buildShop(){let nb=0,nt=0,nx=0;
         dm.position.set(l.frontX+l.face*0.02,l.y-0.11,z);dm.rotation.set(0,0,0);dm.scale.set(0.05,0.17,pitch*0.66);dm.updateMatrix();tagMesh.setMatrixAt(nt,dm.matrix);tagMesh.setColorAt(nt,tc);nt++;
         if(it.w<0)return;
         const col=(!typeOn[WINES[it.w].t]||(findWine>=0&&it.w!==findWine))?grey:bottleColor[it.w];
-        for(let j=0;j<it.b;j++){dm.position.set(l.frontX-l.face*(0.2+j*0.262),l.y,z);dm.rotation.set(0,(k*2.1+j*1.3)%6.28,0);dm.scale.set(1,1,1);dm.updateMatrix();
+        for(let j=0;j<it.b;j++){dm.position.set(l.frontX-l.face*(0.14+j*0.262*BOTTLE_S*1.1),l.y,z);dm.rotation.set(0,(k*2.1+j*1.3)%6.28,0);dm.scale.set(BOTTLE_S,BOTTLE_S,BOTTLE_S);dm.updateMatrix();
           bottleMesh.setMatrixAt(nb,dm.matrix);bottleMesh.setColorAt(nb,col);bandMesh.setMatrixAt(nb,dm.matrix);nb++;}
       });}
     else if(l.kind==='under'){l.items.slice(0,UNDER_CAP).forEach((it,i)=>{
