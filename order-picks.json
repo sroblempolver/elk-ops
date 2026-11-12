@@ -1,0 +1,565 @@
+{
+ "about": "Sample data from the Elk Ops Warehouse 3D page (Version 5). Shelf codes are the 3D page's own: IS3-2, row 5 = Israeli rack, section 3, shelf 2 (top), row 5 counted left to right as you face the shelf. Pallets in the big warehouse look like B07-0a (Rack B, bay 7, floor, position a). Stock is sample stock, so pick spots can change as orders are packed in a browser. Nothing here is read from or written to Shopify beyond wine names and prices.",
+ "generated": "2026-11-10",
+ "pack_order": [
+  "#9834",
+  "#9835",
+  "#9829",
+  "#9833",
+  "#9825"
+ ],
+ "orders_to_pack": [
+  {
+   "order": "#9834",
+   "customer": "Rachel G.",
+   "ship_to": "Bay Harbor Islands, FL",
+   "ships_by": "van",
+   "boxes": 1,
+   "gift_note": "",
+   "lines": [
+    {
+     "qty": 1,
+     "wine": "Hagafen Sauvignon Blanc 2024",
+     "pick_from": "WH2-2, row 2",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "WH2-2, row 2 · 3 on the shelf"
+    },
+    {
+     "qty": 1,
+     "wine": "O'Dwyers Creek Sauvignon Blanc 2025",
+     "pick_from": "WH3-2, row 2",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "WH3-2, row 2 · 5 on the shelf"
+    },
+    {
+     "qty": 1,
+     "wine": "Dalton Estate Cabernet Sauvignon 2023",
+     "pick_from": "IS2-1, row 5",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "IS2-1, row 5 · 7 on the shelf"
+    },
+    {
+     "qty": 1,
+     "wine": "Bin Nun Reserve 2023",
+     "pick_from": "IS1-1, row 6",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "IS1-1, row 6 · 7 on the shelf"
+    },
+    {
+     "qty": 1,
+     "wine": "Gvaot Vineyard Dance 2023",
+     "pick_from": "IS3-1, row 5",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "IS3-1, row 5 · 6 on the shelf, 12 boxed below"
+    },
+    {
+     "qty": 1,
+     "wine": "Netofa Latour Red",
+     "pick_from": "IS4-1, row 6",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "IS4-1, row 6 · 4 on the shelf, 10 boxed below"
+    },
+    {
+     "qty": 1,
+     "wine": "Sonoma Loeb Dignitary Pinot Noir",
+     "pick_from": "CA3-2, row 5",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "CA3-2, row 5 · 7 on the shelf"
+    },
+    {
+     "qty": 1,
+     "wine": "Carmel Signature Black Cabernet Sauvignon 2023",
+     "pick_from": "IS2-1, row 1",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "IS2-1, row 1 · 4 on the shelf"
+    },
+    {
+     "qty": 1,
+     "wine": "La Vie Rouge Du Castel 2023",
+     "pick_from": "IS3-2, row 3",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "IS3-2, row 3 · 5 on the shelf"
+    },
+    {
+     "qty": 1,
+     "wine": "Hajdu Zinfandel Old Vine",
+     "pick_from": "CA1-2, row 3",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "CA1-2, row 3 · 4 on the shelf"
+    },
+    {
+     "qty": 1,
+     "wine": "Shirah One Two Punch",
+     "pick_from": "CE3-2, row 1",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "CE3-2, row 1 · 4 on the shelf"
+    },
+    {
+     "qty": 1,
+     "wine": "Adir Kerem Ben Zimra Cabernet 375ml",
+     "pick_from": "IS1-1, row 1",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "IS1-1, row 1 · 7 on the shelf"
+    }
+   ]
+  },
+  {
+   "order": "#9835",
+   "customer": "Daniel K.",
+   "ship_to": "Miami Beach, FL",
+   "ships_by": "van",
+   "boxes": 1,
+   "gift_note": "Happy anniversary! Love, Mia",
+   "lines": [
+    {
+     "qty": 1,
+     "wine": "Yarden Pinot Noir 2023",
+     "pick_from": "IS6-1, row 6",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "IS6-1, row 6 · 7 on the shelf"
+    },
+    {
+     "qty": 1,
+     "wine": "Yarden 2T 2021",
+     "pick_from": "IS6-1, row 4",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "IS6-1, row 4 · 4 on the shelf"
+    },
+    {
+     "qty": 1,
+     "wine": "Yarden Syrah 2021",
+     "pick_from": "IS6-2, row 1",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "IS6-2, row 1 · 5 on the shelf"
+    },
+    {
+     "qty": 1,
+     "wine": "Hevron Heights Jerusalem Heights Cabernet-Merlot 2019",
+     "pick_from": "IS3-2, row 1",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "IS3-2, row 1 · 7 on the shelf"
+    },
+    {
+     "qty": 1,
+     "wine": "Hevron Heights Pardess Merlot",
+     "pick_from": "IS3-2, row 2",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "IS3-2, row 2 · 7 on the shelf"
+    },
+    {
+     "qty": 1,
+     "wine": "Hevron Heights Isaac's Ram Cabernet Sauvignon",
+     "pick_from": "IS3-1, row 6",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "IS3-1, row 6 · 4 on the shelf"
+    },
+    {
+     "qty": 2,
+     "wine": "Chateau Roubine Rose 2024",
+     "pick_from": "B07-0a (big warehouse, next door)",
+     "on_shop_shelf": 1,
+     "get_case_from_next_door": true,
+     "not_in_stock": false,
+     "note": "the shelf at RO1-2, row 6 only has 1 · get a case from next door: pallet B07-0a in the big warehouse (4 cases there)"
+    },
+    {
+     "qty": 2,
+     "wine": "Yarden Rose 2024",
+     "pick_from": "RO4-2, row 4",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "RO4-2, row 4 · 5 on the shelf"
+    }
+   ]
+  },
+  {
+   "order": "#9829",
+   "customer": "Ari M.",
+   "ship_to": "Los Angeles, CA",
+   "ships_by": "ups",
+   "boxes": 1,
+   "gift_note": "",
+   "lines": [
+    {
+     "qty": 1,
+     "wine": "Traversa Canova Barbaresco Nebbiolo 2021",
+     "pick_from": "SI3-2, row 3",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "SI3-2, row 3 · 4 on the shelf"
+    },
+    {
+     "qty": 1,
+     "wine": "Pescaja Le Flery Rosato Piemonte 2025",
+     "pick_from": "RO3-2, row 2",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "RO3-2, row 2 · 6 on the shelf"
+    },
+    {
+     "qty": 1,
+     "wine": "Vitkin Grenache Blanc",
+     "pick_from": "WH4-2, row 2",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "WH4-2, row 2 · 6 on the shelf"
+    },
+    {
+     "qty": 1,
+     "wine": "Negretti Barolo DOCG 2020",
+     "pick_from": "SI3-1, row 1",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "SI3-1, row 1 · 5 on the shelf, 11 boxed below"
+    },
+    {
+     "qty": 1,
+     "wine": "Elk Rutting Red California Blend 2022",
+     "pick_from": "CE2-1, row 5",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "CE2-1, row 5 · 6 on the shelf"
+    },
+    {
+     "qty": 1,
+     "wine": "Elk Bugling White Chardonnay Red Mountain Washington 2025",
+     "pick_from": "CE1-1, row 1",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "CE1-1, row 1 · 7 on the shelf"
+    },
+    {
+     "qty": 2,
+     "wine": "Elk Rose of Grenache Eaglepoint Ranch California 2025",
+     "pick_from": "CE2-1, row 2",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "CE2-1, row 2 · 5 on the shelf"
+    },
+    {
+     "qty": 2,
+     "wine": "Zacuto Ruby Port",
+     "pick_from": "SI3-2, row 5",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "SI3-2, row 5 · 6 on the shelf"
+    }
+   ]
+  },
+  {
+   "order": "#9833",
+   "customer": "Leah S.",
+   "ship_to": "Baltimore, MD",
+   "ships_by": "ups",
+   "boxes": 3,
+   "gift_note": "",
+   "lines": [
+    {
+     "qty": 36,
+     "wine": "Madame De Rayne Sauternes 2022",
+     "pick_from": "B06-0a (big warehouse)",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "3 cases from pallet B06-0a in the big warehouse · 5 cases there"
+    }
+   ]
+  },
+  {
+   "order": "#9825",
+   "customer": "Josh T.",
+   "ship_to": "Miami, FL",
+   "ships_by": "pickup",
+   "boxes": 1,
+   "gift_note": "",
+   "lines": [
+    {
+     "qty": 3,
+     "wine": "Herzog Variations 4 Cabernet Sauvignon",
+     "pick_from": "CA3-1, row 2",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "CA3-1, row 2 · 6 on the shelf"
+    },
+    {
+     "qty": 3,
+     "wine": "Herzog Special Reserve Quartet Red Blend 2022",
+     "pick_from": "CA2-2, row 4",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "CA2-2, row 4 · 6 on the shelf"
+    },
+    {
+     "qty": 2,
+     "wine": "Les Marronniers Chablis 2023",
+     "pick_from": "WH3-1, row 6",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "WH3-1, row 6 · 6 on the shelf"
+    },
+    {
+     "qty": 2,
+     "wine": "J de villebois Sancerre 2025",
+     "pick_from": "WH3-1, row 1",
+     "on_shop_shelf": null,
+     "get_case_from_next_door": false,
+     "not_in_stock": false,
+     "note": "WH3-1, row 1 · 7 on the shelf"
+    }
+   ]
+  }
+ ],
+ "orders_packed_on_ready_shelves": [
+  {
+   "order": "#9831",
+   "customer": "Miriam B.",
+   "ship_to": "Bal Harbour, FL",
+   "ships_by": "van",
+   "boxes": 1,
+   "ready_shelf": "SH1-1",
+   "packed_at": "11:07 AM",
+   "lines": [
+    {
+     "qty": 1,
+     "wine": "Chateau de Come Saint-Estephe 2022"
+    },
+    {
+     "qty": 1,
+     "wine": "Agur Special Reserve 2021"
+    },
+    {
+     "qty": 1,
+     "wine": "Dalton Galilo 2021"
+    },
+    {
+     "qty": 1,
+     "wine": "Chateau Moulin Riche Saint Julien 2022"
+    },
+    {
+     "qty": 1,
+     "wine": "Tabor Malkiya Cabernet Sauvignon 2019"
+    },
+    {
+     "qty": 1,
+     "wine": "Flam Cabernet Sauvignon Reserve 2023"
+    }
+   ]
+  },
+  {
+   "order": "#9824",
+   "customer": "Sam W.",
+   "ship_to": "Boca Raton, FL",
+   "ships_by": "van",
+   "boxes": 4,
+   "ready_shelf": "SH2-0",
+   "packed_at": "1:44 PM",
+   "lines": [
+    {
+     "qty": 12,
+     "wine": "Hagafen Chardonnay 2022"
+    },
+    {
+     "qty": 6,
+     "wine": "Herzog Variations 4 Cabernet Sauvignon"
+    },
+    {
+     "qty": 12,
+     "wine": "Shiloh Privilege 2023"
+    },
+    {
+     "qty": 6,
+     "wine": "Hagafen Sauvignon Blanc 2024"
+    },
+    {
+     "qty": 6,
+     "wine": "Herzog Lineage Pinot Noir"
+    }
+   ]
+  },
+  {
+   "order": "#9826",
+   "customer": "Noa P.",
+   "ship_to": "Palm Beach, FL",
+   "ships_by": "van",
+   "boxes": 1,
+   "ready_shelf": "SH2-1",
+   "packed_at": "2:29 PM",
+   "lines": [
+    {
+     "qty": 6,
+     "wine": "Gvaot Gofna Reserve Bittuni 2023"
+    }
+   ]
+  },
+  {
+   "order": "#9828",
+   "customer": "Eli R.",
+   "ship_to": "Miami, FL",
+   "ships_by": "van",
+   "boxes": 1,
+   "ready_shelf": "SH3-1",
+   "packed_at": "3:27 PM",
+   "lines": [
+    {
+     "qty": 2,
+     "wine": "Capcanes Peraj Ha'abib Pinot Noir"
+    },
+    {
+     "qty": 1,
+     "wine": "Herzog Lineage Pinot Noir"
+    },
+    {
+     "qty": 1,
+     "wine": "Chateau Signac Cotes du Rhone 2023"
+    }
+   ]
+  }
+ ],
+ "ready_to_ship_shelves": [
+  "SH1-0",
+  "SH1-1",
+  "SH1-2",
+  "SH2-0",
+  "SH2-1",
+  "SH2-2",
+  "SH3-0",
+  "SH3-1",
+  "SH3-2"
+ ],
+ "receiving": {
+  "po": "1182",
+  "from": "Royal Wine",
+  "lines": [
+   {
+    "cases": 5,
+    "wine": "Carmel Signature Black Cabernet Sauvignon 2023",
+    "suggested_spot": "B02-0b"
+   },
+   {
+    "cases": 3,
+    "wine": "Herzog Lineage Pinot Noir",
+    "suggested_spot": "B02-0b"
+   },
+   {
+    "cases": 4,
+    "wine": "Herzog Variations 4 Cabernet Sauvignon",
+    "suggested_spot": "B07-1a"
+   },
+   {
+    "cases": 2,
+    "wine": "Castel Grand Vin 2023",
+    "suggested_spot": "B08-1b"
+   }
+  ],
+  "not_in_shopify": [
+   {
+    "cases": 3,
+    "wine": "Barkan Classic Malbec 2023",
+    "note": "new wine, no product in Shopify"
+   },
+   {
+    "cases": 2,
+    "wine": "Psagot Edom 2024",
+    "note": "new vintage, Shopify has Psagot Edom 2023 at $48",
+    "closest_in_shopify": "Psagot Edom 2023"
+   }
+  ],
+  "not_in_shopify_rule": "These two lines are on PO 1182 too (19 cases in all). They are set aside in Receiving and the owner is asked whether to create the products. A yes makes a draft in the product upload agent. Nothing is created in Shopify.",
+  "shopify_quantity_update": {
+   "rule": "After a delivery is received, each wine Shopify knows gets a line. The person picks boxes of 12, boxes of 6 or single bottles, can change the count, and presses Update in Shopify. Preview only: nothing is sent to Shopify.",
+   "default_lines": [
+    {
+     "wine": "Carmel Signature Black Cabernet Sauvignon 2023",
+     "count": 5,
+     "count_as": "boxes of 12",
+     "adds_bottles": 60
+    },
+    {
+     "wine": "Herzog Lineage Pinot Noir",
+     "count": 3,
+     "count_as": "boxes of 12",
+     "adds_bottles": 36
+    },
+    {
+     "wine": "Herzog Variations 4 Cabernet Sauvignon",
+     "count": 4,
+     "count_as": "boxes of 12",
+     "adds_bottles": 48
+    },
+    {
+     "wine": "Castel Grand Vin 2023",
+     "count": 2,
+     "count_as": "boxes of 12",
+     "adds_bottles": 24
+    }
+   ]
+  }
+ },
+ "wording": {
+  "fetch": "the shelf at {row} only has {n} · get a case from next door: pallet {pallet} in the big warehouse ({cases} cases there)",
+  "pill": "Next door",
+  "tabs": [
+   "Today",
+   "Orders",
+   "Pickup",
+   "Delivery",
+   "Owner",
+   "Receiving",
+   "Restock",
+   "Agents"
+  ]
+ },
+ "small_warehouse_changes": {
+  "office_door": "in the office wall that faces the shelves, by the building entrance",
+  "bathroom_door": "in the bathroom wall that faces the garage door",
+  "agents_desk": "the office desk opens the Agents desk: every agent, and email drafts"
+ }
+}
