@@ -520,7 +520,7 @@ label.rmsw{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:60
   .cols.md{grid-template-columns:minmax(270px,350px) minmax(0,1fr)}
   .cols.md>.main{order:2}
   .side .ocard.sel{display:grid;border-color:var(--accent)}
-  .tiles{grid-template-columns:repeat(4,1fr)}.tiles:has(>:nth-child(3):last-child){grid-template-columns:repeat(3,1fr)}
+  .tiles{grid-template-columns:repeat(4,1fr)}.tiles:has(>:nth-child(3):last-child){grid-template-columns:repeat(3,1fr)}.tiles:has(>:nth-child(2):last-child){grid-template-columns:repeat(2,1fr)}
 }
 
 /* floating bits */
@@ -1770,6 +1770,18 @@ locs.forEach(l=>{
 // the office desk is a hot spot too: a click on it opens the agents
 const DESK={id:'Agents desk',desk:true,kind:'desk',x:SX+4.2,y:0,z:SZ+36.55,w:5.4,d:5.9,hitH:4.3,items:[]};
 (function(){const m=new THREE.Mesh(new THREE.BoxGeometry(DESK.w,DESK.hitH,DESK.d),hitMat);m.position.set(DESK.x,DESK.hitH/2,DESK.z);m.userData.loc=DESK;DESK.hit=m;scene.add(m);hits.push(m);})();
+// sections: a whole rack bay, shelf section, vintage shelf or middle-row spot. Hover outlines it; a click on it (or its side) zooms in to it.
+const SECS={},secHits=[];
+function secKey(l){if(!l||l.desk)return null;if(l.group==='shop')return l.unit.k+(l.bay+1);if(l.kind==='pallet')return l.id.split('-')[0];if(l.kind==='shelf')return l.id.split('-')[0];return null;}
+locs.forEach(l=>{const k=secKey(l);if(!k)return;const S=SECS[k]||(SECS[k]={k,locs:[],x0:1e9,x1:-1e9,y0:1e9,y1:-1e9,z0:1e9,z1:-1e9});S.locs.push(l);l.sec=S;
+  const h=l.hitH||l.h||1.4;S.x0=Math.min(S.x0,l.x-l.w/2);S.x1=Math.max(S.x1,l.x+l.w/2);S.z0=Math.min(S.z0,l.z-l.d/2);S.z1=Math.max(S.z1,l.z+l.d/2);S.y0=Math.min(S.y0,l.y);S.y1=Math.max(S.y1,l.y+h);});
+Object.values(SECS).forEach(S=>{const l=S.locs[0];S.face=l.face||(l.group==='left'?1:l.group==='right'?-1:0);
+  S.name=l.group==='shop'?`${l.unit.name} · section ${l.bay+1}`:l.kind==='shelf'?`Vintage area · shelf ${S.k.slice(1)}`:l.group==='middle'?`Middle row · spot ${+S.k.slice(1)}`:`${l.area} · bay ${+S.k.slice(1)}`;
+  const pad=0.35,m=new THREE.Mesh(new THREE.BoxGeometry(S.x1-S.x0+pad,S.y1-S.y0+pad,S.z1-S.z0+pad),hitMat);m.position.set((S.x0+S.x1)/2,(S.y0+S.y1)/2,(S.z0+S.z1)/2);m.userData.sec=S;S.hit=m;scene.add(m);secHits.push(m);});
+function zoomSec(S){if(!S||walk)return;mapWanted();const cx=(S.x0+S.x1)/2,cy=(S.y0+S.y1)/2,cz=(S.z0+S.z1)/2,span=Math.max(S.y1-S.y0,S.z1-S.z0,S.x1-S.x0),d=span*1.6+7,k=innerWidth<=720?1.7:1;
+  const off=S.face?[S.face*d,d*0.28,d*0.18]:[d*0.6,d*0.75,d*0.6],t=[cx,cy,cz],p=t.map((v,i)=>v+off[i]*k);
+  if(camera.position.distanceTo(new THREE.Vector3(...p))<1.5&&controls.target.distanceTo(new THREE.Vector3(...t))<1)return;fly(p,t,700);viewBtns().forEach(b=>b.classList.remove('on'));}
+
 const caseGeo=new THREE.BoxGeometry(CASE.w-0.04,CASE.h-0.04,CASE.d-0.04);
 const caseMesh=IM(caseGeo,new THREE.MeshStandardMaterial({roughness:.85}),locs.reduce((a,l)=>a+(l.cap||0),0),true);
 // bottles: one lathe shape for all, coloured per wine, with a paper label band
@@ -1869,6 +1881,8 @@ function changed(){reindex();syncRoute();repaint();if(sel){fitBox(selBox,sel);fi
 // outlines for hover / selection
 function outline(color){const g=new THREE.EdgesGeometry(new THREE.BoxGeometry(1,1,1));const m=new THREE.LineSegments(g,new THREE.LineBasicMaterial({color,depthTest:false,transparent:true}));m.renderOrder=10;m.visible=false;scene.add(m);return m;}
 const hoverBox=outline(0xc9a15a), selBox=outline(0xa8303f);
+const secBox=outline(0x8c7b6c);secBox.material.opacity=.75;
+function fitSec(S){secBox.position.set((S.x0+S.x1)/2,(S.y0+S.y1)/2,(S.z0+S.z1)/2);secBox.scale.set(S.x1-S.x0+0.5,S.y1-S.y0+0.4,S.z1-S.z0+0.5);secBox.visible=true;}
 const selFill=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshBasicMaterial({color:0xa8303f,transparent:true,opacity:.14,depthWrite:false}));selFill.visible=false;scene.add(selFill);
 function fitBox(o,l){const h=Math.max(l.hitH,stackH(l));o.position.set(l.x,l.y+h/2,l.z);o.scale.set(l.w+0.25,h+0.15,l.d+0.25);o.visible=true;}
 function stackH(l){if(!isCases(l))return l.hitH;const n=used(l)+(l.kind==='recv'?npCases():0);if(!n)return l.pallet?0.6:0.4;return (l.pallet?0.42:0.06)+Math.ceil(n/(l.cols*l.rows))*CASE.h;}
@@ -1959,6 +1973,9 @@ function pick(e){const r=renderer.domElement.getBoundingClientRect();mouse.set((
 function rayLoc(maxD){const hit=ray.intersectObjects(moveCtx?hits.filter(h=>h.userData.valid):hits,false)[0];if(!hit||(maxD&&hit.distance>maxD))return null;
   if(wallsFull){const w=ray.intersectObjects(walls,false).concat(ray.intersectObjects(doors,true)).sort((a,b)=>a.distance-b.distance)[0];if(w&&w.distance<hit.distance)return null;}   // a full-height wall or door in front hides it
   return hit.object.userData.loc;}
+function raySec(){if(moveCtx)return null;const hit=ray.intersectObjects(secHits,false)[0];if(!hit)return null;
+  if(wallsFull){const w=ray.intersectObjects(walls,false).concat(ray.intersectObjects(doors,true)).sort((a,b)=>a.distance-b.distance)[0];if(w&&w.distance<hit.distance)return null;}
+  return hit.object.userData.sec;}
 function tipHtml(l){if(l.desk)return '<b>Agents desk</b> · click to open your agents';let h=`<b>${l.id}</b> · ${summary(l)}`;
   if(l.kind==='shop')h+=`<br>${esc(l.unit.name)} · section ${l.bay+1}`;
   else if(l.kind==='ship'){if(l.items[0])h+=`<br>Order ${l.items[0].no}${l.items.length>1?` + ${l.items.length-1} more`:''}`;}
@@ -1967,15 +1984,19 @@ function tipHtml(l){if(l.desk)return '<b>Agents desk</b> · click to open your a
 renderer.domElement.addEventListener('pointermove',e=>{
   if(walk&&lookId===e.pointerId&&lookPrev){walk.yaw-=(e.clientX-lookPrev.x)*0.005;walk.pitch=Math.max(-1.2,Math.min(1.2,walk.pitch-(e.clientY-lookPrev.y)*0.005));lookPrev={x:e.clientX,y:e.clientY};}
   if(e.pointerType==='touch')return;lastMouse=performance.now();if(walk&&e.buttons)return;const l=pick(e);hover=l;const tip=$('tip');
+  const S=moveCtx||walk?null:(l?l.sec:raySec());if(S)fitSec(S);else secBox.visible=false;
+  const place=()=>{tip.hidden=false;tip.style.left=Math.min(innerWidth-270,e.clientX+14)+'px';tip.style.top=(e.clientY+14)+'px';};
   if(l){fitBox(hoverBox,l);hoverBox.material.color.set(moveCtx?0x2f9a5f:0xc9a15a);renderer.domElement.style.cursor='pointer';
-    tip.innerHTML=tipHtml(l);tip.hidden=false;tip.style.left=Math.min(innerWidth-270,e.clientX+14)+'px';tip.style.top=(e.clientY+14)+'px';}
+    tip.innerHTML=tipHtml(l);place();}
+  else if(S){hoverBox.visible=false;renderer.domElement.style.cursor='pointer';tip.innerHTML=`<b>${esc(S.name)}</b><br>Click to zoom in`;place();}
   else{hoverBox.visible=false;tip.hidden=true;renderer.domElement.style.cursor='';}});
-renderer.domElement.addEventListener('pointerleave',()=>{hoverBox.visible=false;$('tip').hidden=true;});
+renderer.domElement.addEventListener('pointerleave',()=>{hoverBox.visible=false;secBox.visible=false;$('tip').hidden=true;});
 renderer.domElement.addEventListener('pointerdown',e=>{down={x:e.clientX,y:e.clientY};
   if(walk){lookId=e.pointerId;lookPrev={x:e.clientX,y:e.clientY};try{renderer.domElement.setPointerCapture(e.pointerId);}catch(_){}}});
 ['pointerup','pointercancel'].forEach(t=>renderer.domElement.addEventListener(t,e=>{if(lookId===e.pointerId){lookId=null;lookPrev=null;}}));
 renderer.domElement.addEventListener('pointerup',e=>{if(!down||Math.hypot(e.clientX-down.x,e.clientY-down.y)>6){down=null;return;}down=null;
-  const l=pick(e);if(moveCtx){if(l)finishMove(l);return;} if(l&&l.desk){openDesk();return;} select(l||null);});
+  const l=pick(e);if(moveCtx){if(l)finishMove(l);return;} if(l&&l.desk){openDesk();return;}
+  const S=l?l.sec:raySec();if(S&&!walk)zoomSec(S); select(l||null);});
 
 /* ---------- Detail panel ---------- */
 let openX=-1;
@@ -2731,7 +2752,7 @@ const linkRow=(t,u)=>`<div class="acts"><a class="btn sm ghost" href="${u||PACK_
 function showFeed(){hideRight('feed');opsBack=null;renderFeed();$('feed').hidden=false;}
 function renderFeed(){const S=STATS,o=nextOrder(),rdy=readyOrders().filter(x=>x.o.method==='van').length,vp=state.orders.filter(x=>x.method==='van').length,out=(state.van||[]).filter(x=>!x.delivered).length;
   $('fSub').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'})+' · sample day';
-  let h=`<div class="tiles">${tile('$'+fmt(Math.round(S.sales)),'Sales today','owner')}${tile(S.nPack,'Orders to pack','orders')}${tile('$280 to $380','Apps replaced, a month','owner')}</div><div class="sec">Up next</div>`;
+  let h=`<div class="tiles">${tile('$'+fmt(Math.round(S.sales)),'Sales today','owner')}${tile(S.nPack,'Orders to pack','orders')}</div><div class="sec">Up next</div>`;
   if(o)h+=`<div class="rs card now"><div class="top"><div class="nm">Pack order ${esc(o.no)}</div><span class="pill mth">${esc(METHOD[o.method])}</span></div><div class="meta"><b>${esc(o.cust)}</b> · ${plural(orderBottles(o),'bottle')} · next because ${esc(whyNext(o))}</div><div class="acts"><button class="sm primary" data-froute="${esc(o.no)}">Start picking</button><button class="sm" data-fopen="${esc(o.no)}">Open order</button></div></div>`;
   else h+=`<div class="rs card"><div class="nm">Every order is packed</div><div class="meta">Nothing is waiting at the packing table.</div></div>`;
   if(rdy)h+=card(`The Elk van leaves at ${VAN.leaves}`,`${plural(rdy,'order')} packed and waiting on the ready shelves${vp?`, ${vp} still to pack`:''}.`,[['Open Pickup','pickup']]);
@@ -2939,7 +2960,7 @@ function deliverHtml(){const van0=state.van||[],van=drv&&drv.out?van0:rmVanOrder
   if(!van.length)h+=`<div class="empty">Nothing is in the van yet. Load it in Pickup first.</div><div class="acts"><button class="sm primary" data-go="pickup">Open Pickup</button></div>`;
   van.forEach((o,i)=>{const cur=o===left[0];h+=`<div class="rs ocard${cur?' open':''}"><div class="top"><span class="ln">${o.delivered?'✓':i+1}</span><div class="nm" style="flex:1;min-width:0">${esc(o.cust)}</div><span class="meta" style="white-space:nowrap">${esc(o.no)} · ${boxesTxt(o.boxes)}</span></div><div class="meta">${esc(o.to)}${o.gift?' · gift note inside':''}</div>`+(o.failed&&!o.delivered?`<div class="meta"><span class="pill low">Not delivered: ${esc(o.failed.toLowerCase())}</span> The boxes are still in the van.</div>`:'')
     +(o.delivered?`<div class="meta"><span class="pill ok">Delivered at ${esc(o.delivered)}</span></div>`:`<div class="acts"><button class="sm${cur?' primary':''}" data-dscan="${esc(o.no)}">Scan a box at the door${o.dropped?` (${o.dropped} of ${o.boxes})`:''}</button><button class="sm" data-ddone="${esc(o.no)}">Mark delivered</button></div>`)+`</div>`;});
-  return h+`<div class="hint">Directions, the photo at the door and the text to the customer are in the Driver app tab. This takes over from EasyRoutes, which costs $200 to $300 a month.</div><div class="acts"><button class="sm" data-rm="view" data-id="phone">See it on the driver's phone</button><button class="sm" data-rm="view" data-id="routes">Open Routes</button><button class="sm" data-rm="view" data-id="deliveries">Every delivery today</button></div>`+SAMPLE;}
+  return h+`<div class="hint">Directions, the photo at the door and the text to the customer are in the Driver app tab.</div><div class="acts"><button class="sm" data-rm="view" data-id="phone">See it on the driver's phone</button><button class="sm" data-rm="view" data-id="routes">Open Routes</button><button class="sm" data-rm="view" data-id="deliveries">Every delivery today</button></div>`+SAMPLE;}
 
 // --- Driver app: a preview of the driver's phone, inside Elk Ops. It runs on the same sample orders as Pickup and Delivery, so a box scanned here moves there too. Nothing is texted to a customer, no van is tracked and nothing is written to Shopify. ---
 const DRV_KEY='elk-wh3d-driver',drv0=()=>({scr:'clock',on:false,t0:0,inAt:'',out:false,cur:null,here:{},photo:{},sign:{},ret:{},hours:'',outAt:''});
@@ -3419,7 +3440,7 @@ function ownerHtml(){const S=STATS,all=S.nPack+S.nReady+S.nVan,cs=state.cash||[]
   h+=`<div class="blks">`;
   {const a=newAsk();if(a.length)h+=`<div class="blk"><div class="sec">Needs your decision</div><div class="rs card now"><div class="nm">Create ${a.length>1?`${a.length} new products`:'a new product'}?</div><div class="meta">Received and not in Shopify yet:</div>${a.map(x=>`<div class="oline"><span class="ln">${x.c}</span><div style="min-width:0;flex:1">${esc(x.n)}${x.like>=0?`<div class="meta">${esc(cap1(npWhy(x)))}</div>`:''}</div><span class="meta">${x.c>1?'cases':'case'}</span></div>`).join('')}<div class="acts"><button class="sm primary" data-npall="1">Yes, create ${a.length>1?'them':'it'}</button><button class="sm" data-npskip="all">Not now</button><button class="sm ghost" data-go="recv">Open Receiving</button></div><div class="hint">Preview only. A yes makes a draft in the product upload agent. Nothing is created in Shopify.</div></div></div>`;}
   h+=`<div class="blk"><div class="sec">Where today's money is</div><div class="rs">${row('Orders still to pack','$'+fmt(Math.round(S.toPack)))}${row('Packed, on the ready shelves','$'+fmt(Math.round(S.packed)))}${row('In the van or delivered','$'+fmt(Math.round(S.out)))}${row('Cash sales to enter in Shopify','$'+fmt(Math.round(S.cash)))}</div></div>`;
-  h+=`<div class="blk"><div class="sec">What this app replaces</div><div class="rs">${row('EasyRoutes (delivery routes)','$200 to $300 a month')}${row('EasyScan (packing scans)','about $80 a month')}${row('Together','$280 to $380 a month')}${row('Over a year','$3,360 to $4,560')}</div></div>`;
+  
   h+=`<div class="blk"><div class="sec">Stock</div><div class="rs">${row('Cases in the big warehouse',fmt(S.cases))}${row('Bottles in the shop',fmt(S.btl))}${row('Wines to top up in the shop',S.need)}${row('Cases waiting to be sorted',S.recv)}${npCases()?row('Cases of new wines set aside',npCases()):''}<div class="acts"><button class="sm" data-go="restock">Open Restock</button><button class="sm" data-go="recv">Open Receiving</button></div></div></div>`;
   h+=`<div class="blk"><div class="sec">Hours today</div><div class="rs">${row(VAN.driver+', driver',drv.on?`on shift since ${esc(drv.inAt)} · ${drvShift()}`:drv.hours?`${esc(drv.inAt)} to ${esc(drv.outAt)} · ${esc(drv.hours)} hours`:'not clocked in')}<div class="acts"><button class="sm" data-rm="view" data-id="phone">Open the driver app</button><button class="sm" data-rm="view" data-id="drivers">Drivers</button></div><div class="hint">The driver clocks in and out on the driver app, or by telling Elka “clock in”.</div></div></div>`;
   if(cs.length)h+=`<div class="blk"><div class="sec">Cash sales recorded here</div><div class="rs">${cs.slice(0,6).map(c=>row(`${c.b} × ${esc(nm(c.w))}`,'$'+fmt(c.b*WINES[c.w].p))).join('')}</div></div>`;
@@ -3775,7 +3796,7 @@ function agentReply(kind){openAgent(kind);const S=STATS;
       chips:!van.length?[{label:'Open Pickup',run:()=>openOps('pickup')}]:left.length?[{label:'Mark this stop delivered',primary:true,run:b=>{b.disabled=true;const r=deliverStop(left[0].no,true);say(r.text,r.ok?[chipUndo()]:[]);}}]:[]};}
   if(kind==='driver'&&rm&&rm.view!=='phone'){rm.view='phone';rmSave();renderAgent();}
   if(kind==='driver')return{text:`The driver's phone is open, under Routes and drivers. It is what ${VAN.driver} sees on the phone: clock in, find the boxes, scan them into the van, follow the route, then scan and photograph at the door. ${drv.on?`${VAN.driver} is clocked in since ${drv.inAt}.`:'Nobody is clocked in yet.'} Click through it, or tell me “clock in”. It is a preview: no texts go out and nothing is written to Shopify.`,chips:[]};
-  if(kind==='owner')return{text:`Today: $${fmt(Math.round(S.sales))} in sales across ${S.nPack+S.nReady+S.nVan} orders, with ${S.nPack} still to pack. This app takes over from EasyRoutes and EasyScan, which cost $280 to $380 a month together.`+(newAsk().length?` One thing needs your yes or no: ${plural(newAsk().length,'new wine')} from Receiving ${newAsk().length>1?'are':'is'} not in Shopify yet. Do you want me to create ${newAsk().length>1?'those products':'that product'}?`:''),chips:newAsk().length?(pending={need:'newprod'},npChips()):[]};
+  if(kind==='owner')return{text:`Today: $${fmt(Math.round(S.sales))} in sales across ${S.nPack+S.nReady+S.nVan} orders, with ${S.nPack} still to pack.`+(newAsk().length?` One thing needs your yes or no: ${plural(newAsk().length,'new wine')} from Receiving ${newAsk().length>1?'are':'is'} not in Shopify yet. Do you want me to create ${newAsk().length>1?'those products':'that product'}?`:''),chips:newAsk().length?(pending={need:'newprod'},npChips()):[]};
   if(kind==='email'){const sj=emSubject();emTalk=true;return{text:sj?`The email agent is open with “${sj}” on the desk. Nothing was sent. Tell me what to change and it will change only that, or ask for a new email.`:'The email agent is open. Tell me what the email is about, for example “write an email about the Castel Grand Vin”, and it will write the email and its code. Then tell me what to fix. Nothing is sent from this page.',
     chips:[{label:'Email from what we have plenty of',run:()=>elkaSend('Write an email about what we have plenty of')}]};}
   deskCam();const A=k=>AGENTS.find(a=>a.k===k).now();
@@ -4308,7 +4329,7 @@ function elkaTools(ctx){const T=[
      return{opened:'Routes and drivers, '+rm.view,says:r.text,routes:rm.routes.map(x=>{const P=rmPlan(x);return{id:x.id,name:x.name,driver:(rmDrv(x.drv)||{}).name||'none yet',stops:P.S.length,leaves:rmT(rmHM(x.start)??960),back:P.S.length?rmT(P.end):'',status:x.st};}),not_on_a_route:rmUn().map(s=>s.name),drivers:rm.drivers.map(d=>({name:d.name,vehicle:d.veh,working_today:d.on})),texts_sent:false};}
    if(sc==='product'||sc==='email'){openAgent(sc);return{opened:AGT[sc],note:sc==='product'?'Preview only. Drafts stay in this browser and nothing is sent to Shopify.':(emSubject()?`“${emSubject()}” is on the desk. `:'No email on the desk yet. ')+'To write one or change it, call open_screen again with screen email and email_request. Nothing is sent from this page.'};}
    openOps({delivery:'deliver',receiving:'recv'}[sc]||sc);const cs=state.cash||[];
-   return{opened:TABN[curTab()]||sc,status:feedText(),sales_today_dollars:Math.round(STATS.sales),apps_replaced:'EasyRoutes $200 to $300 a month and EasyScan about $80 a month',cash_sales_to_enter:{count:cs.length,total_dollars:cs.reduce((x,c)=>x+c.b*WINES[c.w].p,0)}};}},
+   return{opened:TABN[curTab()]||sc,status:feedText(),sales_today_dollars:Math.round(STATS.sales),cash_sales_to_enter:{count:cs.length,total_dollars:cs.reduce((x,c)=>x+c.b*WINES[c.w].p,0)}};}},
  {name:'record_sale',description:'Record bottles sold outside the system (for example for cash). Takes them off the shop shelf, then the box below, then the big warehouse, and adds the sale to the cash sales list. Returns what was recorded.',
   inputSchema:{type:'object',properties:Object.assign({bottles:{type:'integer'},payment:{type:'string',description:'cash unless told otherwise'}},WSCHEMA),required:['bottles']},
   execute(a){const w=resolveWine(a),r=actSale(w,Math.max(1,Math.min(600,Math.round(+a.bottles)||1)),String(a.payment||'cash').slice(0,20));if(!r.ok)throw new Error(r.text);ctx.changed=true;lastWine=w;if(r.loc){pinpoint(r.loc,w,{fast:true,keep:!!opsOpen()});ctx.shown={l:r.loc,w};}return{done:r.text};}},
